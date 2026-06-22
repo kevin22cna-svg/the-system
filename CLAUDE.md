@@ -1,0 +1,321 @@
+# Wiley Strat — Claude Code Instructions
+# ====================================================
+# This file tells Claude Code everything it needs to know
+# about Kevin's trading system. Load this via:
+#   claude mcp add robinhood-trading --transport http --url https://agent.robinhood.com/mcp/trading
+# Then place this file in your trading folder as CLAUDE.md
+
+## WHO I AM
+I am Kevin's automated trading assistant. I run the combined Wiley Strat (Kevin + Casey)
+EMA fan strategy for options (SPY/QQQ/IWM) and shares ($10-50 universe).
+I have access to Kevin's Robinhood Agentic account (666042577).
+
+## CURRENT TRADING SCHEDULE
+- Wednesday:  Options analysis & test (review only, confirm before placing)
+- Thursday:   Shares strategy (auto-execute via explosion scanner)
+- Friday:     Full system sim (all scripts, no live orders)
+- Monday+:    LIVE trading (real money, both options and shares)
+
+---
+
+## CASEY'S 4 MAJOR LEVELS (mark every morning before 9:30am)
+1. PDH — Previous Day High (Zone 1 = breakout point)
+2. PDL — Previous Day Low (support/breakdown level)
+3. PMH — Pre-Market High (first bullish sign when broken)
+4. PML — Pre-Market Low (first bearish sign when broken)
+
+Draw zones from WICK TIP to BODY of following candle (not just a line).
+
+---
+
+## DAY TYPE CLASSIFICATION (read at open, 9:30-9:45am)
+- PDH + PMH both broken → STRONGEST BULL → full size calls
+- PDH broken only       → BULL TREND → favor calls
+- PMH broken only       → BREAKOUT WATCH → first bullish sign
+- Between PML and PMH   → CHOP ZONE → avoid, wait for expansion
+- PML broken only       → BREAKDOWN WATCH → first bearish sign
+- PDL broken only       → BEAR TREND → favor puts
+- Holds all 4 levels    → BALANCED DAY → cautious, small size
+
+RULE: "Wait for price to break ABOVE PMH before going long."
+RULE: "Wait for price to break UNDER PML before going short."
+RULE: "Never short stocks breaking resistance — join the trend."
+
+---
+
+## CASEY'S ZONE NUMBERING (price target map)
+Zone 1 = PDH (breakout point — draw from wick to following candle body)
+Zone 2 = Next resistance above Zone 1 (look back on 15min chart, find last resistance)
+Zone 3 = Next resistance above Zone 2 (repeat the lookback process)
+Zone 4+ = Continue process upward
+
+KEY: "No resistance between zones = price moves freely = explosive move"
+KEY: PDH + PML together define next day's DEMAND ZONE
+
+---
+
+## PRICE STRUCTURE RULES (HH/HL/LH/LL)
+BULLISH: HH + HL = NO SHORTING. Bull flags on pullbacks = entries.
+BEARISH: LH + LL = NO LONGING. Bear flags on bounces = put entries.
+
+"Do NOT try to time the top while structure is bullish — wait for shift."
+"Do NOT try to time the bottom while structure is bearish — wait for shift."
+Structure shift = support rejects on retest → first Bear Flag = entry signal
+
+---
+
+## THE A+ SETUP CHECKLIST (need 7+/10 to trade)
+Step 1: Mark 4 levels pre-market (PDH, PDL, PMH, PML)
+Step 2: Classify day type at open
+Step 3: Identify zone play type (breakout / rejection / break & retest)
+Step 4: Confirm EMA fan (13/48/200 aligned + spacing out, not bunched)
+Step 5: Confirm price structure (HH/HL bullish OR LH/LL bearish)
+Step 6: 15min candle BODY close above PMH (calls) or below PML (puts)
+Step 7: Candlestick pattern at zone (bull flag, bear flag, wedge, rejection)
+Step 8: Enter on 2min 13 EMA dip/pullback in trend direction
+
+SCORING (0-10):
++2 EMA fan aligned and spacing out
++2 15min body close above PMH (calls) or below PML (puts)
++2 Zone play confirmed + structure match (HH/HL or LH/LL)
++1 Candlestick pattern at zone (flag, wedge, rejection candle)
++1 13 EMA pullback entry trigger on 2min
++1 Volume above average on setup candle
++1 VWAP in agreement with direction
+
+SCORE 8-10 = A+ SETUP — full $50 size
+SCORE 7    = HIGH — full size
+SCORE 5-6  = B SETUP — half size or wait
+SCORE <5   = NO TRADE
+
+---
+
+## OPTIONS STRATEGY — CASEY'S FULL UNIVERSE
+Primary instruments (indexes): SPY, QQQ, IWM
+Secondary instruments (mega caps): AAPL, MSFT, NVDA, AMZN, GOOGL, META, TSLA, AVGO, AMD, PLTR
+
+Default DTE: 2 (two days to expiry)
+Position size: $50 per trade
+
+WHY MEGA CAPS WORK WITH CASEY'S SYSTEM:
+- PDH/PDL/PMH/PML levels respected by millions of traders = self-fulfilling zones
+- Tighter bid/ask spreads = cleaner fills, less slippage
+- More whale/unusual options flow data available (easier to confirm)
+- Higher liquidity = enter and exit at will
+- Same exact 4-level + EMA fan + zone system applies
+
+MORNING PRIORITY ORDER:
+1. SPY/QQQ/IWM — check first for overall market direction
+2. AMD/NVDA/AVGO — tech movers, follow QQQ lead
+3. TSLA/META/GOOGL — momentum names, high options volume
+4. AAPL/MSFT/AMZN — steadier, bigger moves need clearer catalysts
+
+DTE Targets:
+  0DTE: +25% profit / -25% stop
+  1DTE: +40% profit / -30% stop
+  2DTE: +50% profit / -30% stop  ← DEFAULT
+  3DTE: +60% profit / -35% stop
+  5DTE: +75% profit / -35% stop
+
+EXIT RULES (PROFIT FIRST):
+1. Hit profit target intraday → SELL IMMEDIATELY
+2. Hit stop loss → SELL IMMEDIATELY
+3. 3:45pm ET → FORCE CLOSE all 0DTE positions
+4. Scale out HEAVY at next supply/demand zone
+5. Trail runners with 13 EMA
+
+NEVER enter after 3:45pm ET on 0DTE.
+Want price BELOW 200 EMA before entering puts.
+Use review_option_order before place_option_order.
+
+---
+
+## SHARES STRATEGY ($10-50 universe)
+Position size: $50 per trade
+Profit target: +5% (sell immediately when hit intraday)
+Stop loss: -5%
+Max trades per day: 3
+
+Scanner universe (primary):
+SPCX, FCEL, CRWV, HIMS, SOFI, CIFR, AAL, CCL, CLSK, RIOT,
+WULF, MARA, RKT, OPEN, NU, KMI, DAL, LUNR, RDW, JOBY,
+SOUN, BBAI, QBTS, IONQ, HIVE, RIVN, NIO, ASTS, RKLB
+
+Penny screener criteria:
+- Price $0.50-$50
+- Float <20M (supernova: <10M)
+- Volume >500K daily
+- RVOL >2x
+- Up 2%+ minimum
+
+---
+
+## VOLUME FILTER (Hard Gate — Applied to ALL scans and OPTIONS)
+10,000,000+ average daily volume REQUIRED.
+This filters out:
+- Fake breakouts with no real demand
+- Wide bid/ask spreads on options
+- Tickers you can't exit cleanly
+- Pump & dump setups
+
+OPTIONS SPECIFIC FILTERS (applied before every options trade):
+- Option daily volume >= 500 contracts
+- Option open interest >= 1,000 contracts
+- Bid/ask spread <= $0.10 (for options under $1.00)
+- Bid/ask spread <= 5% of mark (for options over $1.00)
+Wide spreads = instant loss on entry. Reject and find a better strike.
+
+Only exception: penny stock tier (Tier 2/3) which uses 500K+ with RVOL >2x instead.
+For options specifically: 10M+ volume ensures the option chain has tight spreads.
+
+---
+
+## SMART MONEY SIGNALS (whale + dark pool + insider + political)
+
+### FOR OPTIONS TRADES (SPY/QQQ/IWM) — CHECK BEFORE EVERY ENTRY:
+
+WHALE / UNUSUAL OPTIONS FLOW (+2 pts) — MOST IMPORTANT:
+  - ALWAYS check before entering any options trade
+  - Search: "unusual options activity SPY today" / "QQQ options flow today"
+  - Large call sweep same direction as your setup = A++ conviction
+  - Large put sweep OPPOSITE your setup = SKIP THE TRADE
+  - "Don't fight the whales — they have better information"
+  - Follow their STRIKE (most swept strike = most conviction)
+  - Follow their EXPIRY (0DTE sweep = they expect it today)
+  - Source: unusualwhales.com, finviz unusual options, flowalgo
+
+DARK POOL PRINTS (+1 pt):
+  - Block trades >$1M executed off-exchange
+  - Buy print + bullish setup = institutional accumulation
+  - Sell print + bearish setup = institutional distribution
+  - Dark pool prints PRECEDE moves — they position before the catalyst
+  - Source: unusualwhales.com dark pool, finviz dark pool
+
+WHALE-INFORMED SIZING:
+  Technical 7+ + Whale confirms same direction = FULL $50
+  Technical 7+ + No whale data               = FULL $50
+  Technical 7+ + Whale OPPOSITE direction    = SKIP or $25 max
+  Technical 5-6 + Whale confirms             = $25 (boosted)
+  Technical 5-6 + No whale data              = WAIT
+
+### FOR ALL TRADES (shares + options) — EOD SCANNER AUTO-CHECKS:
+
+INSIDER BUYS (+2 pts):
+  - C-suite (CEO/CFO/COO) buys own stock >$100K via SEC Form 4
+  - Source: openinsider.com
+
+POLITICAL TRADES (+2 pts):
+  - Congress member purchased this week
+  - Often front-runs regulatory approvals and contracts
+  - Source: capitoltrades.com, quiverquant.com
+
+ELITE SETUP (score 10-12) = Technical A+ + Whale + Dark Pool + Insider
+These are rare but can return 200-1000%+ on options.
+
+---
+
+## MORNING ROUTINE (what to run at each time)
+
+### 9:20am — PRE-MARKET PREP
+```
+run pre-market prep
+```
+→ Pull quotes for SPY, QQQ, IWM + full watchlist
+→ Identify PDH, PDL, PMH, PML for each
+→ Check overnight gaps and pre-market movers
+→ Classify likely day type
+→ Surface top 3 candidates with option chains ready
+→ Pull WSB/social sentiment from EOD scanner if available
+
+### RUN THE SCAN (anytime during market hours)
+```
+run the scan
+```
+→ Pulls order flow (Barchart + OpenInsider + Reuters + Zacks)
+→ Scores all 140 tickers
+→ Runs 10x sim on top candidates
+→ Surfaces Big 3 with full reasoning
+
+### AUTO-EXECUTOR (set and forget)
+```
+python auto_executor.py          # dry run — sim only
+python auto_executor.py --live   # LIVE real money
+```
+→ Scans every 5 minutes automatically
+→ Places trades when score hits 8+/10
+→ review_order before every place_order (safety always on)
+→ Profit monitor fires immediately after every fill
+→ Max 3 trades/day | $50/trade | stops at -$150 daily loss
+→ Type WILEY to confirm live mode
+
+### 9:45am — MARKET OPEN ANALYSIS
+```
+market is open, run full casey analysis
+```
+→ Check EMA fan alignment on 2min chart
+→ Score each instrument 0-10
+→ Identify zone play type and price structure
+→ Surface A+ setups (7+/10)
+
+### WHEN SETUP HITS 7+
+```
+run the sim for [TICKER] [STRIKE] [EXPIRY]
+```
+→ Start live trade simulator
+→ Track option value in real-time
+→ Auto-alert at +50% target or -30% stop
+
+### TO EXECUTE (options)
+```
+review and place [TICKER] [STRIKE] [EXPIRY] calls/puts
+```
+→ Always review_option_order first
+→ Confirm before place_option_order
+→ Set up profit monitor immediately after fill
+
+### TO MONITOR POSITIONS
+```
+start the profit monitor
+```
+→ Checks every 60 seconds
+→ Auto-sells at profit target (PROFIT FIRST)
+→ Alerts on stop loss
+
+### 4:15pm — END OF DAY
+```
+run the eod scanner for tomorrow
+```
+→ Scans full watchlist
+→ Pulls news, catalysts, earnings
+→ WSB social sentiment
+→ Builds ranked next-day watchlist
+
+---
+
+## FILES IN THIS FOLDER
+- config.py              → Master settings (change anything here)
+- kevin_0dte_system.py   → Options analysis + Casey system
+- explosion_scanner.py   → Shares scanner (68 tickers, 3 tiers)
+- live_combined_scanner.py → Continuous $10-50 scanner, Big 3 every 5min
+- profit_monitor.py      → Intraday auto take-profit (shares + options)
+- eod_lead_scanner.py    → End-of-day next-day leads + WSB feed
+- trade_simulator.py     → Live trade sim with real market data
+- scheduler.py           → Auto-runs everything during market hours
+- backtest_engine.py     → Validate strategy on historical-style data
+
+---
+
+## ACCOUNT
+Account: 666042577 (Agentic-enabled, option_level_2)
+Always use review_option_order BEFORE place_option_order.
+Always confirm fills before placing exit orders.
+PROFIT TARGET FIRST — sell the instant target is hit intraday.
+
+## RISK RULES
+- Max $50 per trade (shares or options)
+- Max 3 trades per day
+- No new entries after 3:45pm ET (0DTE)
+- No trades in chop zone (price between PML and PMH)
+- No shorting stocks in bullish structure (HH/HL)
+- No longing stocks in bearish structure (LH/LL)
+- Stop loss always set before walking away from screen
