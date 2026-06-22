@@ -207,6 +207,7 @@ def run_scan_cycle(client, auto_trade=False, dry_run=True):
     print(f"{'─'*60}")
 
     # Format order flow data for scoring
+    flow_tickers = fetch_live_orderflow()
     flow_str = json.dumps(flow_tickers[:15]) if flow_tickers else "[]"
 
     user_msg = f"""
