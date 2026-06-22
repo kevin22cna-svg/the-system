@@ -168,6 +168,29 @@ Wide spreads = instant loss on entry. Reject and find a better strike.
 Only exception: penny stock tier (Tier 2/3) which uses 500K+ with RVOL >2x instead.
 For options specifically: 10M+ volume ensures the option chain has tight spreads.
 
+STRIKE SELECTION — 1-STRIKE OTM RULE (0DTE):
+Cheap far-OTM options look like deals. They aren't. Here's why:
+
+  Option A: $749P (1-strike OTM) @ $1.00 — delta 0.25–0.35
+  Option B: $745P (5-strike OTM) @ $0.15 — delta 0.05–0.08
+
+  Same $0.40–$0.60 SPY drop:
+    Option A gains $0.08–$0.18 (+15–25%) ✓
+    Option B gains $0.03 (+20%) — but theta has already eaten half of it ✗
+
+  The $0.15 option also bleeds theta the fastest. A 1–5 min hold still
+  costs you because cheap options have almost no extrinsic value left as buffer.
+
+THE RULE:
+- Strike: 1-strike OTM only on 0DTE — no exceptions
+- Premium: $0.50–$1.00 (reject under $0.50 on 0DTE regardless of direction)
+- Delta: 0.25–0.35 target
+- Hold: 1–5 minutes at a fresh zone level
+- Above $1.00 premium → use 1DTE or 2DTE instead
+
+A $0.30–$0.50 SPY move in your direction = $0.08–$0.18 gain = +15–25% target.
+Realistic. Repeatable. The math works here. Nowhere else.
+
 ---
 
 ## SMART MONEY SIGNALS (whale + dark pool + insider + political)

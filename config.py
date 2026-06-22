@@ -145,6 +145,24 @@ CONFIG = {
             3: {"profit": 0.60, "stop": 0.35},   # 3DTE — best win rate 86.5%
             5: {"profit": 0.75, "stop": 0.35},   # 5DTE — highest total P&L
         },
+
+        # ── STRIKE SELECTION (1-strike OTM rule) ─────────────────────────────
+        # Cheap far-OTM options look like deals but aren't. The math:
+        #   5-strike OTM delta ~0.05-0.08 → same SPY move = fraction of the gain
+        #   + theta bleeds fastest on cheapest options (proportionally)
+        #   = you need a miracle move AND beat theta. Doesn't work.
+        #
+        # Sweet spot: 1-strike OTM. Delta 0.25-0.35. Premium $0.50-$1.00.
+        #   A $0.30-$0.50 SPY move → $0.08-$0.18 gain = +15-25% target.
+        #   Achievable in 1-5 minutes at a fresh level. Realistic. Repeatable.
+        "strike_selection": {
+            "rule":          "1-strike OTM only — no exceptions on 0DTE",
+            "premium_min":   0.50,    # reject anything under $0.50 on 0DTE
+            "premium_max":   1.00,    # above $1.00 = use 1DTE or 2DTE instead
+            "delta_target":  (0.25, 0.35),
+            "hold_minutes":  (1, 5),  # designed for 1-5 min scalp at fresh level
+            "reject_reason": "Far OTM 0DTE: delta too low + theta bleeds fastest on cheapest options",
+        },
     },
 
     # ── CONFLUENCE SCORING (Wiley Strat (Kevin + Casey)) ───────────────────────────────────
