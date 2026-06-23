@@ -53,9 +53,9 @@ MCP_SERVER = {
 # ── Config ────────────────────────────────────────────────────────────────────
 AUTO_EXECUTE_THRESHOLD = 8      # Score 8+ = auto-execute
 WHALE_CONFIRM_THRESHOLD = 7     # Score 7+ needs whale confirm to auto-execute
-POSITION_SIZE_USD      = 50.0   # Per trade
+POSITION_SIZE_USD      = 25.0   # Per trade — lowered to match account cash
 MAX_DAILY_TRADES       = 3      # Max auto-trades per day
-DAILY_LOSS_LIMIT       = -150.0 # Stop trading for the day if hit
+DAILY_LOSS_LIMIT       = -75.0  # Stop trading for the day if hit (3x $25)
 SCAN_INTERVAL_SEC      = 300    # Scan every 5 minutes
 
 # Option targets (2DTE default)

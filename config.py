@@ -16,7 +16,7 @@ CONFIG = {
     # ── ACCOUNT ──────────────────────────────────────────────────────────────
     "account": {
         "agentic_number": "666042577",   # Your Agentic-enabled account
-        "position_size_usd": 50.0,        # Default $ per trade
+        "position_size_usd": 25.0,        # Lowered — fund account to restore to $50
     },
 
     # ── SHARES TRADING ───────────────────────────────────────────────────────
