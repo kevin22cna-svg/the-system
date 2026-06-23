@@ -198,7 +198,7 @@ CONFIG = {
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
         "scale_exit": {
             "leg1_pct":    0.50,   # sell 50% of shares at leg1_target
-            "leg1_target": 0.05,   # +5%
+            "leg1_target": 0.04,   # +4% (= 2% SPY/QQQ move with 2x leverage)
             "leg2_target": 0.07,   # +7% runner (remaining 50%)
         },
         "stop_loss": 0.05,           # -5% full position

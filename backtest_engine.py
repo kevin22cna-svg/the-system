@@ -290,8 +290,8 @@ ETF_PAIRS = {
     },
 }
 
-ETF_LEG1_TARGET   = 0.05   # sell 50% at +5%
-ETF_LEG2_TARGET   = 0.07   # sell runner 50% at +7%
+ETF_LEG1_TARGET   = 0.04   # sell 50% at +4% (= 2% SPY/QQQ move)
+ETF_LEG2_TARGET   = 0.07   # sell runner 50% at +7% (= 3.5% SPY/QQQ move)
 ETF_STOP_LOSS     = 0.05   # -5% full position (before leg 1 fills)
 ETF_POSITION_USD  = 50.0
 ETF_MIN_SCORE     = 7
@@ -308,7 +308,7 @@ def run_etf_backtest():
 ╔══════════════════════════════════════════════════════════╗
 ║   📊 LEVERAGED ETF BACKTEST — SSO / SDS / QLD / QID     ║
 ║   252 Trading Days  |  Fractional shares  |  $50/trade  ║
-║   Leg1 +5% (50%) → Runner +7% (50%)  |  Stop -5%       ║
+║   Leg1 +4% (50%) → Runner +7% (50%)  |  Stop -5%       ║
 ╚══════════════════════════════════════════════════════════╝
 """)
 
