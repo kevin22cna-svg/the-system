@@ -186,7 +186,13 @@ CONFIG = {
 
     # ── LEVERAGED ETFs (intraday only — NEVER held overnight) ────────────────
     "leveraged_etfs": {
-        "tickers": ["UPRO", "SDS", "TQQQ", "SQQQ"],
+        # SPY 2x: SSO (long) / SDS (short)
+        # QQQ 2x: QLD (long) / QID (short)
+        "tickers": ["SSO", "SDS", "QLD", "QID"],
+        "spy_long":  "SSO",   # 2x S&P long
+        "spy_short": "SDS",   # 2x S&P short
+        "qqq_long":  "QLD",   # 2x QQQ long
+        "qqq_short": "QID",   # 2x QQQ short
         "intraday_only": True,
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
         "profit_target": 0.05,       # +5%
