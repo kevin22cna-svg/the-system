@@ -300,9 +300,8 @@ ETF_PAIRS = {
     },
 }
 
-ETF_LEG1_TARGET   = 0.04   # sell 50% at +4% (= 2% SPY/QQQ move)
-ETF_LEG2_TARGET   = 0.07   # sell runner 50% at +7% (= 3.5% SPY/QQQ move)
-ETF_STOP_LOSS     = 0.05   # -5% full position (before leg 1 fills)
+ETF_PROFIT_TARGET = 0.05   # +5% — sell full position, compound into next trade
+ETF_STOP_LOSS     = 0.05   # -5% full position
 ETF_POSITION_USD  = 50.0
 ETF_MIN_SCORE     = 7
 
@@ -321,8 +320,8 @@ def run_etf_backtest(premarket="12am", seed=42):
     print(f"""
 ╔══════════════════════════════════════════════════════════╗
 ║   📊 LEVERAGED ETF BACKTEST — SSO / SDS / QLD / QID     ║
-║   252 Trading Days  |  Fractional shares  |  $50/trade  ║
-║   Leg1 +4% (50%) → Runner +7% (50%)  |  Stop -5%       ║
+║   252 Trading Days  |  Fractional shares  |  full BP    ║
+║   +5% full exit — compound balance each trade           ║
 ║   Pre-market window: {premarket:5s}  PMH/PML {pm_range['pmh'][0]*100:.1f}–{pm_range['pmh'][1]*100:.1f}% from open   ║
 ╚══════════════════════════════════════════════════════════╝
 """)
@@ -365,55 +364,28 @@ def run_etf_backtest(premarket="12am", seed=42):
 
                 entry_u   = r["price"]
                 bars_left = BARS_PER_DAY - bar
-                half      = ETF_POSITION_USD * 0.5   # $25 each leg
-
-                leg1_pnl  = None   # first 50% exit
-                leg2_pnl  = None   # runner 50% exit
+                exit_pnl  = None
                 exit_why  = "TIME_EXPIRE"
-                leg1_bar  = None
 
                 for fwd in range(1, min(bars_left - 1, 80)):
                     fwd_u   = df.iloc[bar + fwd]["close"]
                     raw     = (fwd_u - entry_u) / entry_u
                     etf_pct = raw * params["leverage"] * (1 if etf_dir == "LONG" else -1)
 
-                    if leg1_pnl is None:
-                        # Full position still open
-                        if etf_pct >= ETF_LEG1_TARGET:
-                            leg1_pnl = half * ETF_LEG1_TARGET   # +5% on $25
-                            exit_why = "LEG1"
-                            leg1_bar = fwd
-                        elif etf_pct <= -ETF_STOP_LOSS:
-                            leg1_pnl = -ETF_POSITION_USD * ETF_STOP_LOSS  # full stop
-                            leg2_pnl = 0.0
-                            exit_why = "STOP_LOSS"
-                            break
-                    else:
-                        # Runner (50%) still open after leg 1
-                        if etf_pct >= ETF_LEG2_TARGET:
-                            leg2_pnl = half * ETF_LEG2_TARGET   # +7% on $25
-                            exit_why = "LEG1+LEG2"
-                            break
-                        elif etf_pct <= 0:
-                            # Runner gave back all gains — exit flat
-                            leg2_pnl = 0.0
-                            exit_why = "LEG1+RUNNER_FLAT"
-                            break
+                    if etf_pct >= ETF_PROFIT_TARGET:
+                        exit_pnl = ETF_POSITION_USD * ETF_PROFIT_TARGET
+                        exit_why = "PROFIT_TARGET"
+                        break
+                    elif etf_pct <= -ETF_STOP_LOSS:
+                        exit_pnl = -ETF_POSITION_USD * ETF_STOP_LOSS
+                        exit_why = "STOP_LOSS"
+                        break
 
-                # Time expiry handling
-                if leg1_pnl is None or leg2_pnl is None:
+                if exit_pnl is None:
                     end_u   = df.iloc[min(bar + bars_left - 2, BARS_PER_DAY - 1)]["close"]
                     raw     = (end_u - entry_u) / entry_u
                     etf_pct = max(-0.15, min(0.15, raw * params["leverage"] * (1 if etf_dir == "LONG" else -1)))
-                    if leg1_pnl is None:
-                        # Neither leg hit — exit full position at market
-                        leg1_pnl = ETF_POSITION_USD * etf_pct
-                        leg2_pnl = 0.0
-                    else:
-                        # Leg 1 hit, runner expires at market
-                        leg2_pnl = half * etf_pct
-
-                exit_pnl = leg1_pnl + leg2_pnl
+                    exit_pnl = ETF_POSITION_USD * etf_pct
 
                 equity     += exit_pnl
                 day_trades += 1
@@ -464,12 +436,10 @@ def run_etf_backtest(premarket="12am", seed=42):
     print(f"  Avg loss:       ${l['pnl'].mean():.2f}" if len(l) else "  Avg loss:       N/A")
     print(f"  Profit factor:  {pf:.2f}")
     print(f"  Max drawdown:   ${max_dd:.2f}")
-    both  = (t["exit"] == "LEG1+LEG2").sum()
-    leg1  = (t["exit"].isin(["LEG1", "LEG1+RUNNER_FLAT"])).sum()
+    pt    = (t["exit"] == "PROFIT_TARGET").sum()
     sl    = (t["exit"] == "STOP_LOSS").sum()
     ex    = (t["exit"] == "TIME_EXPIRE").sum()
-    print(f"  Exits:          Both legs:{both} ({both/len(t)*100:.0f}%)  "
-          f"Leg1 only:{leg1} ({leg1/len(t)*100:.0f}%)  "
+    print(f"  Exits:          +5% hit:{pt} ({pt/len(t)*100:.0f}%)  "
           f"SL:{sl} ({sl/len(t)*100:.0f}%)  Expired:{ex} ({ex/len(t)*100:.0f}%)")
 
     print(f"\n  BY ETF:")
@@ -499,8 +469,7 @@ def run_etf_backtest(premarket="12am", seed=42):
         "avg_loss": round(l["pnl"].mean() if len(l) else 0, 2),
         "profit_factor": round(pf, 2),
         "max_drawdown": round(max_dd, 2),
-        "both_legs_hit": int(both),
-        "leg1_only": int(leg1),
+        "profit_targets": int(pt),
         "stop_losses": int(sl),
         "time_expires": int(ex),
         "by_etf": {
