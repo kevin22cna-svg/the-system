@@ -130,10 +130,13 @@ STEP 1 — PRIORITY ETF CHECK (do this first every cycle)
 
 STEP 2 — EXECUTE ETF TRADE (if ETF scored 7+)
   1. review_equity_order FIRST for the ETF symbol
-  2. If review clean: {"simulate only" if dry_run else "place_equity_order — $50 fractional buy"}
-  3. Set limit sell at +5% above fill price immediately after fill
-  4. Set stop loss at -5% below fill price
-  5. Report: symbol, direction, shares (fractional ok), cost, target price, stop price
+  2. If review clean: {"simulate only" if dry_run else "place_equity_order — $50 fractional market buy"}
+  3. After fill, immediately place TWO limit sells:
+       Leg 1 — sell 50% of shares at fill_price * 1.04  (+4%)
+       Leg 2 — sell remaining 50% (runner) at fill_price * 1.07  (+7%)
+  4. Set stop loss at fill_price * 0.95  (-5% on full position, before leg 1 fills)
+  5. Report: symbol, direction, total shares, fill price,
+             leg1_price (+4%), leg2_price (+7%), stop_price (-5%)
 
 STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
   Get quotes for the full explosion scanner universe. Score each ticker 0-12:
@@ -152,6 +155,7 @@ STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
     → Not already in position today
 
   For score 7+: review_equity_order then {"simulate" if dry_run else "place_equity_order — $50 market buy"}
+  After fill: place limit sell 50% at +4%, limit sell 50% at +7%, stop at -5%
 
 STEP 4 — REPORT
 Return JSON:
@@ -164,8 +168,10 @@ Return JSON:
   }},
   "scores": [{{"sym":"SOFI","score":9,"direction":"LONG","flow":["unusual options"]}}],
   "executed": [{{"sym":"SSO","type":"shares","direction":"LONG",
-                 "shares":0.76,"cost":50.0,"target":"+5%","stop":"-5%",
-                 "order_id":"...", "status":"filled"}}],
+                 "shares":0.76,"cost":50.0,
+                 "leg1_price":"$67.60 (+4%, sell 0.38 shares)","leg1_order_id":"...",
+                 "leg2_price":"$70.02 (+7%, sell 0.38 shares)","leg2_order_id":"...",
+                 "stop_price":"$62.20 (-5%)","order_id":"...", "status":"filled"}}],
   "alerts": [{{"sym":"QLD","score":6,"reason":"EMA fan forming but not confirmed yet"}}],
   "skipped": [{{"sym":"SDS","reason":"market bullish, wrong direction"}}]
 }}
