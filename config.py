@@ -197,6 +197,7 @@ CONFIG = {
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
         "profit_target": 0.05,       # +5%
         "stop_loss": 0.05,           # -5%
+        "price_range": {"min": 10.0, "max": 150.0},  # overrides scanner range — QLD ~$92
         "note": "Never hold overnight — decay and gap risk make EOD exit mandatory",
     },
 
