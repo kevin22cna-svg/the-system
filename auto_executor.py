@@ -111,6 +111,12 @@ WHY THIS ORDER:
 
 STEP 1 — PRIORITY ETF CHECK (do this first every cycle)
   Get quotes for: SSO, SDS, QLD, QID
+  Pre-market levels (set ONCE at 9:20am, hold all session):
+    PMH = highest price SPY/QQQ traded since 12:00am midnight
+    PML = lowest price SPY/QQQ traded since 12:00am midnight
+    Pull these using get_equity_historicals (1min bars from midnight).
+    These are your Casey zones for the entire session — do not recalculate.
+
   Determine market direction from SPY/QQQ price action:
     - SPY breaking above PMH/PDH → bullish → evaluate SSO and/or QLD
     - SPY breaking below PML/PDL → bearish → evaluate SDS and/or QID

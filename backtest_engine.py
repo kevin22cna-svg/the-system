@@ -307,7 +307,7 @@ ETF_POSITION_USD  = 50.0
 ETF_MIN_SCORE     = 7
 
 
-def run_etf_backtest(premarket="4am", seed=42):
+def run_etf_backtest(premarket="12am", seed=42):
     """Backtest SSO/SDS/QLD/QID as day-traded shares using Casey's framework.
 
     Priority each bar: score SPY first — if 7+ trade SSO or SDS.

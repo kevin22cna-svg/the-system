@@ -193,6 +193,7 @@ CONFIG = {
         "spy_short": "SDS",   # 2x S&P short
         "qqq_long":  "QLD",   # 2x QQQ long
         "qqq_short": "QID",   # 2x QQQ short
+        "premarket_window": "12am",  # use midnight overnight high/low for PMH/PML
         "scan_priority": "first",  # check these before explosion scanner
         "intraday_only": True,
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
