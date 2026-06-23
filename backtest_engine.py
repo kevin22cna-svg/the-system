@@ -290,7 +290,7 @@ ETF_PAIRS = {
     },
 }
 
-ETF_PROFIT_TARGET = 0.10   # +10% on ETF (= 5% underlying move)
+ETF_PROFIT_TARGET = 0.05   # +5% on ETF (= 2.5% underlying move)
 ETF_STOP_LOSS     = 0.05   # -5% on ETF
 ETF_POSITION_USD  = 50.0
 ETF_MIN_SCORE     = 7
