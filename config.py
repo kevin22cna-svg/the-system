@@ -196,8 +196,12 @@ CONFIG = {
         "scan_priority": "first",  # check these before explosion scanner
         "intraday_only": True,
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
-        "profit_target": 0.05,       # +5%
-        "stop_loss": 0.05,           # -5%
+        "scale_exit": {
+            "leg1_pct":    0.50,   # sell 50% of shares at leg1_target
+            "leg1_target": 0.05,   # +5%
+            "leg2_target": 0.07,   # +7% runner (remaining 50%)
+        },
+        "stop_loss": 0.05,           # -5% full position
         "price_range": {"min": 10.0, "max": 150.0},  # overrides scanner range — QLD ~$92
         "note": "Never hold overnight — decay and gap risk make EOD exit mandatory",
     },
