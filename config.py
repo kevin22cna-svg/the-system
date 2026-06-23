@@ -159,18 +159,25 @@ CONFIG = {
     "scanner": {
         "scan_interval_sec": 300,        # Every 5 min
         "profit_check_interval_sec": 60, # Position check every 60s
-        "price_range": {"min": 10.0, "max": 50.0},
+        "price_range": {"min": 10.0, "max": 25.0},  # $10-$25 — clean fills, 1-2 shares at $25 position
     },
 
     # ── TICKER UNIVERSE (single source of truth) ─────────────────────────────
     "tickers": {
-        # Primary watchlist — the $10-50 swing/options universe
+        # Primary watchlist — $10-$25 rotation universe (fallback after ETFs)
+        # Rotated in/out based on price staying in range — scanner filters by price live
         "primary": [
-            "SPCX","FCEL","CRWV","HIMS","SOFI","CIFR","AAL","CCL","CLSK",
-            "RIOT","WULF","MARA","RKT","OPEN","NU","KMI","DAL","LUNR","RDW",
-            "JOBY","SOUN","BBAI","QBTS","IONQ","HIVE","RIVN","NIO","ASTS","RKLB",
-            # User-added
-            "NOK","AMC","PFE","BAC","GME","BABA","HTZ","SNAP","WMT","POET",
+            # High-volume momentum ($10-$25 range)
+            "SOFI","AAL","CIFR","FCEL","CLSK","RIOT","WULF","HIVE",
+            "SOUN","BBAI","JOBY","LUNR","RDW","ASTS","NIO","RIVN",
+            "NU","RKT","OPEN","HIMS","IONQ","QBTS",
+            # User-added regulars
+            "NOK","AMC","BAC","SNAP","HTZ","PFE",
+        ],
+        # On watch — stocks near $10-$25 range, rotate in when price qualifies
+        "on_watch": [
+            "MARA","CCL","DAL","KMI","RKLB","CRWV","PLTR","HOOD",
+            "SPCX","BBAI","POET","BABA","GME",
         ],
         # Volume Trades watchlist
         "volume_trades": [

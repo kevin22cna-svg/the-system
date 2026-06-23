@@ -155,7 +155,8 @@ STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
     -1  Overextended >15%
 
   Filter:
-    → Avg daily volume >= 10M shares
+    → Price $10–$25 (rotation range — skip anything outside this band)
+    → Avg daily volume >= 500K shares
     → Score >= {AUTO_EXECUTE_THRESHOLD} for auto-execution
     → Not already in position today
 
@@ -191,9 +192,11 @@ POSITION SIZE: ${POSITION_SIZE_USD} (fractional shares ok)
 def run_auto_cycle(client, dry_run=True, scan_universe=None):
     if scan_universe is None:
         from config import CONFIG
-        etfs = CONFIG["leveraged_etfs"]["tickers"]  # SSO, SDS, QLD, QID — checked first
-        explosion = CONFIG["tickers"].get("primary", [])
-        # ETFs at front so agent checks them first; explosion scanner is fallback
+        etfs     = CONFIG["leveraged_etfs"]["tickers"]   # SSO, SDS, QLD, QID — checked first
+        primary  = CONFIG["tickers"].get("primary", [])
+        on_watch = CONFIG["tickers"].get("on_watch", [])
+        # ETFs first; then $10-$25 rotation universe + on-watch list
+        explosion = list(dict.fromkeys(primary + on_watch))  # deduped, order preserved
         scan_universe = etfs + [t for t in explosion if t not in etfs]
 
     session["scan_count"] += 1
