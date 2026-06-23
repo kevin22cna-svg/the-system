@@ -275,5 +275,212 @@ def run_backtest():
     print(f"\n  💾 {path}")
     return all_results
 
+# ── Leveraged ETF Shares Backtest ────────────────────────────────────────────
+
+ETF_PAIRS = {
+    "SPY": {
+        "start_price": 480.0, "daily_vol": 0.011, "drift": 0.0003,
+        "avg_volume": 80_000_000,
+        "long_etf": "SSO", "short_etf": "SDS", "leverage": 2.0,
+    },
+    "QQQ": {
+        "start_price": 415.0, "daily_vol": 0.014, "drift": 0.0004,
+        "avg_volume": 45_000_000,
+        "long_etf": "QLD", "short_etf": "QID", "leverage": 2.0,
+    },
+}
+
+ETF_PROFIT_TARGET = 0.05   # +5% on ETF (= 2.5% underlying move)
+ETF_STOP_LOSS     = 0.05   # -5% on ETF
+ETF_POSITION_USD  = 50.0
+ETF_MIN_SCORE     = 7
+
+
+def run_etf_backtest():
+    """Backtest SSO/SDS/QLD/QID as day-traded shares using Casey's framework.
+
+    Priority each bar: score SPY first — if 7+ trade SSO or SDS.
+    If SPY misses, score QQQ — if 7+ trade QLD or QID.
+    Never trade both long and short of the same index the same day.
+    """
+    print("""
+╔══════════════════════════════════════════════════════════╗
+║   📊 LEVERAGED ETF BACKTEST — SSO / SDS / QLD / QID     ║
+║   252 Trading Days  |  Fractional shares  |  $50/trade  ║
+║   +5% profit / -5% stop  |  Priority: SPY → QQQ        ║
+╚══════════════════════════════════════════════════════════╝
+""")
+
+    spy_p = ETF_PAIRS["SPY"]
+    qqq_p = ETF_PAIRS["QQQ"]
+    spy_close = spy_p["start_price"]
+    qqq_close = qqq_p["start_price"]
+
+    equity       = 0.0
+    total_trades = []
+
+    for day in range(TRADING_DAYS):
+        spy_df = generate_day(spy_close, spy_p)
+        qqq_df = generate_day(qqq_close, qqq_p)
+
+        day_trades         = 0
+        spy_dir_used       = None   # prevent trading both sides of same index
+        qqq_dir_used       = None
+
+        for bar in range(ENTRY_BAR_START, ENTRY_BAR_END):
+            if day_trades >= MAX_DAY_TRADES:
+                break
+
+            # Priority order: SPY first, QQQ second
+            for underlying, df, params, dir_used in [
+                ("SPY", spy_df, spy_p, spy_dir_used),
+                ("QQQ", qqq_df, qqq_p, qqq_dir_used),
+            ]:
+                r = score_bar(df, bar)
+                if r["score"] < ETF_MIN_SCORE:
+                    continue
+
+                etf_dir = "LONG" if r["direction"] == "CALLS" else "SHORT"
+                etf_sym = params["long_etf"] if etf_dir == "LONG" else params["short_etf"]
+
+                # Don't flip direction on same underlying same day
+                if dir_used is not None and dir_used != etf_dir:
+                    continue
+
+                entry_u   = r["price"]
+                bars_left = BARS_PER_DAY - bar
+                exit_pnl  = None
+                exit_why  = "TIME_EXPIRE"
+
+                for fwd in range(1, min(bars_left - 1, 80)):
+                    fwd_u = df.iloc[bar + fwd]["close"]
+                    raw   = (fwd_u - entry_u) / entry_u
+                    etf_pct = raw * params["leverage"] * (1 if etf_dir == "LONG" else -1)
+
+                    if etf_pct >= ETF_PROFIT_TARGET:
+                        exit_pnl = ETF_POSITION_USD * ETF_PROFIT_TARGET
+                        exit_why = "PROFIT_TARGET"
+                        break
+                    elif etf_pct <= -ETF_STOP_LOSS:
+                        exit_pnl = -ETF_POSITION_USD * ETF_STOP_LOSS
+                        exit_why = "STOP_LOSS"
+                        break
+
+                if exit_pnl is None:
+                    end_u   = df.iloc[min(bar + bars_left - 2, BARS_PER_DAY - 1)]["close"]
+                    raw     = (end_u - entry_u) / entry_u
+                    etf_pct = max(-0.15, min(0.15, raw * params["leverage"] * (1 if etf_dir == "LONG" else -1)))
+                    exit_pnl = ETF_POSITION_USD * etf_pct
+
+                equity     += exit_pnl
+                day_trades += 1
+
+                if underlying == "SPY":
+                    spy_dir_used = etf_dir
+                else:
+                    qqq_dir_used = etf_dir
+
+                total_trades.append({
+                    "day": day, "bar": bar,
+                    "underlying": underlying,
+                    "etf": etf_sym,
+                    "direction": etf_dir,
+                    "score": r["score"],
+                    "entry_u": round(entry_u, 2),
+                    "pnl": round(exit_pnl, 2),
+                    "exit": exit_why,
+                    "equity": round(equity, 2),
+                })
+                break   # took a trade this bar — move to next bar
+
+        spy_close = spy_df["close"].iloc[-1]
+        qqq_close = qqq_df["close"].iloc[-1]
+
+    if not total_trades:
+        print("  ⚠️  No trades generated"); return {}
+
+    t  = pd.DataFrame(total_trades)
+    w  = t[t["pnl"] > 0]
+    l  = t[t["pnl"] <= 0]
+    wr = len(w) / len(t) * 100
+    pf = abs(w["pnl"].sum() / l["pnl"].sum()) if len(l) > 0 and l["pnl"].sum() != 0 else 999
+    total_pnl = t["pnl"].sum()
+    peak = 0; max_dd = 0
+    for eq in t["equity"]:
+        if eq > peak: peak = eq
+        max_dd = max(max_dd, peak - eq)
+
+    sep = "─" * 58
+    print(f"\n  {sep}")
+    print(f"  RESULTS — {TRADING_DAYS} trading days")
+    print(f"  {sep}")
+    print(f"  Total trades:   {len(t)} ({len(t)/TRADING_DAYS:.2f}/day)")
+    print(f"  Win rate:       {wr:.1f}%")
+    print(f"  Total P&L:      ${total_pnl:+.2f}")
+    print(f"  Avg win:        ${w['pnl'].mean():.2f}" if len(w) else "  Avg win:        N/A")
+    print(f"  Avg loss:       ${l['pnl'].mean():.2f}" if len(l) else "  Avg loss:       N/A")
+    print(f"  Profit factor:  {pf:.2f}")
+    print(f"  Max drawdown:   ${max_dd:.2f}")
+    pt = (t["exit"] == "PROFIT_TARGET").sum()
+    sl = (t["exit"] == "STOP_LOSS").sum()
+    ex = (t["exit"] == "TIME_EXPIRE").sum()
+    print(f"  Exits:          +5% hit:{pt} ({pt/len(t)*100:.0f}%)  "
+          f"SL:{sl} ({sl/len(t)*100:.0f}%)  Expired:{ex} ({ex/len(t)*100:.0f}%)")
+
+    print(f"\n  BY ETF:")
+    for etf in ["SSO", "SDS", "QLD", "QID"]:
+        s = t[t["etf"] == etf]
+        if len(s) == 0: continue
+        etf_wr  = len(s[s["pnl"] > 0]) / len(s) * 100
+        etf_pnl = s["pnl"].sum()
+        print(f"    {etf:4s}: {len(s):3d} trades | WR:{etf_wr:.0f}% | P&L:${etf_pnl:+.2f}")
+
+    print(f"\n  BY SCORE:")
+    for sc, grp in t.groupby("score"):
+        sc_wr  = len(grp[grp["pnl"] > 0]) / len(grp) * 100
+        sc_pnl = grp["pnl"].sum()
+        print(f"    Score {int(sc)}: {len(grp):3d} trades | WR:{sc_wr:.0f}% | P&L:${sc_pnl:+.2f}")
+
+    result = {
+        "strategy": "leveraged_etf_shares",
+        "tickers": ["SSO", "SDS", "QLD", "QID"],
+        "trading_days": TRADING_DAYS,
+        "total_trades": len(t),
+        "trades_per_day": round(len(t) / TRADING_DAYS, 2),
+        "win_rate": round(wr, 1),
+        "total_pnl": round(total_pnl, 2),
+        "avg_win": round(w["pnl"].mean() if len(w) else 0, 2),
+        "avg_loss": round(l["pnl"].mean() if len(l) else 0, 2),
+        "profit_factor": round(pf, 2),
+        "max_drawdown": round(max_dd, 2),
+        "profit_targets": int(pt),
+        "stop_losses": int(sl),
+        "time_expires": int(ex),
+        "by_etf": {
+            etf: {
+                "trades": int(len(t[t["etf"] == etf])),
+                "win_rate": round(len(t[(t["etf"] == etf) & (t["pnl"] > 0)]) / max(len(t[t["etf"] == etf]), 1) * 100, 1),
+                "total_pnl": round(t[t["etf"] == etf]["pnl"].sum(), 2),
+            } for etf in ["SSO", "SDS", "QLD", "QID"]
+        },
+        "equity_curve": [r["equity"] for r in total_trades],
+    }
+
+    os.makedirs(os.path.expanduser("~/scan_logs"), exist_ok=True)
+    path = os.path.expanduser("~/scan_logs/backtest_etf.json")
+    with open(path, "w") as f:
+        json.dump(result, f, indent=2)
+    print(f"\n  💾 {path}")
+    return result
+
+
 if __name__ == "__main__":
-    results = run_backtest()
+    import sys
+    if "--etf" in sys.argv:
+        run_etf_backtest()
+    elif "--both" in sys.argv:
+        run_backtest()
+        print("\n" + "=" * 62 + "\n")
+        run_etf_backtest()
+    else:
+        run_backtest()
