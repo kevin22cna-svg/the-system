@@ -98,63 +98,82 @@ def build_system_prompt(dry_run: bool) -> str:
     return f"""
 You are the Wiley Strat Auto-Executor. Mode: {mode}
 
-Your job every scan cycle:
+PRIORITY ORDER THIS WEEK:
+  1st → Check SSO / SDS / QLD / QID (2x leveraged ETFs) using Casey's full framework
+  2nd → If NONE of the 4 ETFs score 7+, fall back to explosion scanner universe
 
-STEP 1 — SCAN & SCORE
-Get quotes for the full universe. Score each ticker 0-12:
-  +2  EMA fan aligned (proxy: >3% move = fan forming)
-  +2  15min above PMH (proxy: >5% = confirmed, 2-5% = forming)
-  +2  Zone play + structure confirmed
-  +2  ORDER FLOW: appears in Barchart unusual options today
-  +1  Barchart top options volume
-  +2  Insider buy >$100K today (OpenInsider)
-  +1  Volume above 10M average
-  -1  Overextended >15%
+WHY THIS ORDER:
+  - These are traded as fractional shares with $50 position size (same as options)
+  - 2x leverage gives options-like moves without theta decay
+  - Same Casey system: 4 levels, EMA fan, zone plays, price structure
+  - Direction: if market bullish → SSO (SPY) or QLD (QQQ) | if bearish → SDS (SPY) or QID (QQQ)
+  - Never trade both the long and short of the same index on the same day
 
-STEP 2 — FILTER
-  → Price $10-$150 for options (liquid chains)
-  → Avg daily volume >= 10M shares
-  → Score >= {AUTO_EXECUTE_THRESHOLD} for auto-execution
-  → Not already in position today (check existing positions)
-  → Within market hours and option window
+STEP 1 — PRIORITY ETF CHECK (do this first every cycle)
+  Get quotes for: SSO, SDS, QLD, QID
+  Determine market direction from SPY/QQQ price action:
+    - SPY breaking above PMH/PDH → bullish → evaluate SSO and/or QLD
+    - SPY breaking below PML/PDL → bearish → evaluate SDS and/or QID
+    - SPY between PML and PMH    → chop → skip all 4, go to Step 3
 
-STEP 3 — ORDER FLOW CHECK
-  For any ticker scoring {WHALE_CONFIRM_THRESHOLD}+, web-search:
-  "unusual options activity [TICKER] today sweep"
-  If whale call/put sweep confirmed in SAME direction = execute
-  If whale flow OPPOSITE = skip regardless of score
+  Score each relevant ETF using Casey's A+ framework (0-10):
+    +2  EMA fan aligned on SPY/QQQ (13>48>200 bullish OR 200>48>13 bearish) and spacing out
+    +2  15min candle body close above PMH (longs) or below PML (shorts)
+    +2  Zone play confirmed + price structure (HH/HL for longs, LH/LL for shorts)
+    +1  Candlestick pattern at zone (bull flag, bear flag, wedge, rejection)
+    +1  13 EMA pullback entry trigger on 2min chart
+    +1  Volume above average on setup candle
+    +1  VWAP in agreement with direction
 
-STEP 4 — EXECUTE (if conviction >= {AUTO_EXECUTE_THRESHOLD})
-  FOR OPTIONS (SPY/QQQ/IWM/mega caps with liquid chains):
-    1. get_option_chains for the symbol
-    2. Find ATM strike, 2DTE expiry
-    3. Confirm: OI >= 1000, volume >= 500, spread <= 5%
-    4. review_option_order FIRST — check for alerts
-    5. If review clean: place_option_order ({"DRY RUN: review only" if dry_run else "LIVE: place_option_order"})
-    6. Report: symbol, strike, expiry, premium, cost, target, stop
+  If any ETF scores 7+ → execute that trade (STOP, skip Step 3)
+  If no ETF scores 7+ → proceed to Step 3 (explosion scanner fallback)
 
-  FOR SHARES ($10-50 range, high volume):
-    1. review_equity_order FIRST
-    2. If review clean: {"simulate only" if dry_run else "place_equity_order — $50 market buy"}
-    3. Set limit sell at +5% immediately after fill
-    4. Report: symbol, shares, cost, target price, stop price
+STEP 2 — EXECUTE ETF TRADE (if ETF scored 7+)
+  1. review_equity_order FIRST for the ETF symbol
+  2. If review clean: {"simulate only" if dry_run else "place_equity_order — $50 fractional buy"}
+  3. Set limit sell at +5% above fill price immediately after fill
+  4. Set stop loss at -5% below fill price
+  5. Report: symbol, direction, shares (fractional ok), cost, target price, stop price
 
-STEP 5 — REPORT
+STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
+  Get quotes for the full explosion scanner universe. Score each ticker 0-12:
+    +2  EMA fan aligned (proxy: >3% move = fan forming)
+    +2  15min above PMH (proxy: >5% = confirmed, 2-5% = forming)
+    +2  Zone play + structure confirmed
+    +2  ORDER FLOW: appears in Barchart unusual options today
+    +1  Barchart top options volume
+    +2  Insider buy >$100K today (OpenInsider)
+    +1  Volume above 10M average
+    -1  Overextended >15%
+
+  Filter:
+    → Avg daily volume >= 10M shares
+    → Score >= {AUTO_EXECUTE_THRESHOLD} for auto-execution
+    → Not already in position today
+
+  For score 7+: review_equity_order then {"simulate" if dry_run else "place_equity_order — $50 market buy"}
+
+STEP 4 — REPORT
 Return JSON:
 {{
   "scan_time": "...",
-  "scores": [{{"sym":"SOFI","score":9,"direction":"CALLS","flow":["unusual options"]}}],
-  "executed": [{{"sym":"SOFI","type":"option","strike":"$18.5C","expiry":"Jun 19",
-                 "premium":0.45,"cost":45.0,"target":"+50%","stop":"-30%",
+  "etf_check": {{
+    "market_direction": "BULL/BEAR/CHOP",
+    "etf_scores": [{{"sym":"SSO","score":8,"direction":"LONG","reason":"EMA fan + PMH break"}}],
+    "etf_executed": true
+  }},
+  "scores": [{{"sym":"SOFI","score":9,"direction":"LONG","flow":["unusual options"]}}],
+  "executed": [{{"sym":"SSO","type":"shares","direction":"LONG",
+                 "shares":0.76,"cost":50.0,"target":"+5%","stop":"-5%",
                  "order_id":"...", "status":"filled"}}],
-  "alerts": [{{"sym":"META","score":8,"direction":"PUTS","reason":"whale sweep confirmed but no funds"}}],
-  "skipped": [{{"sym":"AVGO","reason":"already overextended, failed 10x sim"}}]
+  "alerts": [{{"sym":"QLD","score":6,"reason":"EMA fan forming but not confirmed yet"}}],
+  "skipped": [{{"sym":"SDS","reason":"market bullish, wrong direction"}}]
 }}
 
 ACCOUNTS: {ACCOUNT}
 MODE: {mode}
 MAX TRADES TODAY: {MAX_DAILY_TRADES}
-POSITION SIZE: ${POSITION_SIZE_USD}
+POSITION SIZE: ${POSITION_SIZE_USD} (fractional shares ok)
 """.strip()
 
 
@@ -162,8 +181,10 @@ POSITION SIZE: ${POSITION_SIZE_USD}
 def run_auto_cycle(client, dry_run=True, scan_universe=None):
     if scan_universe is None:
         from config import CONFIG
-        scan_universe = CONFIG["tickers"]["casey_universe"] + CONFIG["tickers"]["primary"]
-        scan_universe = list(set(scan_universe))
+        etfs = CONFIG["leveraged_etfs"]["tickers"]  # SSO, SDS, QLD, QID — checked first
+        explosion = CONFIG["tickers"].get("primary", [])
+        # ETFs at front so agent checks them first; explosion scanner is fallback
+        scan_universe = etfs + [t for t in explosion if t not in etfs]
 
     session["scan_count"] += 1
     now = now_et()
@@ -186,24 +207,29 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
         print(f"  ✋ Max trades reached ({MAX_DAILY_TRADES}/day). Monitoring positions only.")
         return
 
-    user_msg = f"""
-Run the full Wiley Strat scan and execute high conviction trades.
+    from config import CONFIG
+    etf_tickers = CONFIG["leveraged_etfs"]["tickers"]
+    explosion_tickers = [t for t in scan_universe if t not in etf_tickers]
 
-Tickers to scan: {json.dumps(scan_universe[:60])}
+    user_msg = f"""
+Run the Wiley Strat scan. PRIORITY ORDER:
+
+1. FIRST — check the leveraged ETFs using Casey's full framework:
+   {etf_tickers}
+   Determine SPY/QQQ direction, score each relevant ETF, execute if 7+.
+   If any ETF scores 7+ → execute it and STOP (skip explosion scanner).
+
+2. FALLBACK — only if NO ETF scored 7+, scan the explosion universe:
+   {json.dumps(explosion_tickers[:50])}
+
 Already executed today (skip these): {json.dumps(session['executed_syms'])}
 Trades used today: {session['trades_today']}/{MAX_DAILY_TRADES}
 Current time: {now.strftime('%I:%M:%S %p ET')}
 Option window open: {in_option_window()}
 Past 3:45pm force-close: {past_force_close()}
 
-Order flow context (from this cycle):
-- Search Barchart for unusual options activity
-- Check for any whale sweeps on top scoring tickers
-- Verify 10M+ daily volume before any execution
-
-Execute any ticker scoring {AUTO_EXECUTE_THRESHOLD}+ with clean order flow.
-{"USE review_order ONLY — do NOT place real orders (DRY RUN)" if dry_run else
- "EXECUTE LIVE — place_equity_order and place_option_order for real money"}
+{"USE review_equity_order ONLY — do NOT place real orders (DRY RUN)" if dry_run else
+ "EXECUTE LIVE — place_equity_order for real money, fractional shares ok"}
 """
 
     response = client.beta.messages.create(
