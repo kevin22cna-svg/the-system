@@ -27,7 +27,16 @@ DELTA_ATM       = 0.50  # ATM 0DTE delta
 
 np.random.seed(42)
 
-def generate_day(prev_close, params):
+# Pre-market level ranges by window (how far PMH/PML sits from regular session open)
+# 12am: includes thin overnight session — wider, noisier levels, less respected
+# 4am:  institutional pre-market opens — tighter, more watched by real traders
+PREMARKET_RANGES = {
+    "12am": {"pmh": (0.010, 0.030), "pml": (0.010, 0.030)},  # 1–3% from open
+    "4am":  {"pmh": (0.003, 0.010), "pml": (0.003, 0.010)},  # 0.3–1% from open
+}
+
+
+def generate_day(prev_close, params, premarket="4am"):
     n   = BARS_PER_DAY
     vol = params["daily_vol"] / np.sqrt(n)
     trending  = np.random.random() < 0.60
@@ -47,9 +56,10 @@ def generate_day(prev_close, params):
     df = pd.DataFrame({"open": prices, "high": highs, "low": lows, "close": closes, "volume": vols})
     df.reset_index(drop=True, inplace=True)
 
+    pm        = PREMARKET_RANGES[premarket]
     open0     = prices[0]
-    df["PMH"] = open0 * (1 + np.random.uniform(0.002, 0.006))
-    df["PML"] = open0 * (1 - np.random.uniform(0.002, 0.006))
+    df["PMH"] = open0 * (1 + np.random.uniform(*pm["pmh"]))
+    df["PML"] = open0 * (1 - np.random.uniform(*pm["pml"]))
     df["PDH"] = prev_close * (1 + np.random.uniform(0.005, 0.015))
     df["PDL"] = prev_close * (1 - np.random.uniform(0.005, 0.015))
 
@@ -297,18 +307,23 @@ ETF_POSITION_USD  = 50.0
 ETF_MIN_SCORE     = 7
 
 
-def run_etf_backtest():
+def run_etf_backtest(premarket="4am", seed=42):
     """Backtest SSO/SDS/QLD/QID as day-traded shares using Casey's framework.
 
     Priority each bar: score SPY first — if 7+ trade SSO or SDS.
     If SPY misses, score QQQ — if 7+ trade QLD or QID.
     Never trade both long and short of the same index the same day.
+
+    premarket: "12am" (wider overnight levels) or "4am" (tighter institutional levels)
     """
-    print("""
+    np.random.seed(seed)
+    pm_range = PREMARKET_RANGES[premarket]
+    print(f"""
 ╔══════════════════════════════════════════════════════════╗
 ║   📊 LEVERAGED ETF BACKTEST — SSO / SDS / QLD / QID     ║
 ║   252 Trading Days  |  Fractional shares  |  $50/trade  ║
 ║   Leg1 +4% (50%) → Runner +7% (50%)  |  Stop -5%       ║
+║   Pre-market window: {premarket:5s}  PMH/PML {pm_range['pmh'][0]*100:.1f}–{pm_range['pmh'][1]*100:.1f}% from open   ║
 ╚══════════════════════════════════════════════════════════╝
 """)
 
@@ -321,8 +336,8 @@ def run_etf_backtest():
     total_trades = []
 
     for day in range(TRADING_DAYS):
-        spy_df = generate_day(spy_close, spy_p)
-        qqq_df = generate_day(qqq_close, qqq_p)
+        spy_df = generate_day(spy_close, spy_p, premarket=premarket)
+        qqq_df = generate_day(qqq_close, qqq_p, premarket=premarket)
 
         day_trades         = 0
         spy_dir_used       = None   # prevent trading both sides of same index
@@ -473,6 +488,7 @@ def run_etf_backtest():
 
     result = {
         "strategy": "leveraged_etf_shares",
+        "premarket_window": premarket,
         "tickers": ["SSO", "SDS", "QLD", "QID"],
         "trading_days": TRADING_DAYS,
         "total_trades": len(t),
@@ -498,17 +514,67 @@ def run_etf_backtest():
     }
 
     os.makedirs(os.path.expanduser("~/scan_logs"), exist_ok=True)
-    path = os.path.expanduser("~/scan_logs/backtest_etf.json")
+    path = os.path.expanduser(f"~/scan_logs/backtest_etf_{premarket.replace('am','am')}.json")
     with open(path, "w") as f:
         json.dump(result, f, indent=2)
     print(f"\n  💾 {path}")
     return result
 
 
+def compare_premarket_windows():
+    """Run both pre-market windows with same seed and print side-by-side comparison."""
+    print("\n" + "=" * 62)
+    print("  COMPARING PRE-MARKET WINDOWS: 12am vs 4am")
+    print("=" * 62)
+
+    r12 = run_etf_backtest(premarket="12am", seed=42)
+    print()
+    r4  = run_etf_backtest(premarket="4am",  seed=42)
+
+    sep = "─" * 62
+    print(f"\n\n  {sep}")
+    print(f"  SIDE-BY-SIDE COMPARISON (same 252 days, same seed)")
+    print(f"  {sep}")
+    print(f"  {'Metric':<22} {'12am window':>16} {'4am window':>16} {'Winner':>8}")
+    print(f"  {sep}")
+
+    rows = [
+        ("Total trades",     r12["total_trades"],    r4["total_trades"],    None),
+        ("Trades/day",       r12["trades_per_day"],  r4["trades_per_day"],  None),
+        ("Win rate %",       r12["win_rate"],         r4["win_rate"],        "high"),
+        ("Total P&L $",      r12["total_pnl"],        r4["total_pnl"],       "high"),
+        ("Profit factor",    r12["profit_factor"],    r4["profit_factor"],   "high"),
+        ("Max drawdown $",   r12["max_drawdown"],     r4["max_drawdown"],    "low"),
+        ("Both legs hit",    r12["both_legs_hit"],    r4["both_legs_hit"],   "high"),
+        ("Leg1 only",        r12["leg1_only"],        r4["leg1_only"],       None),
+        ("Stop losses",      r12["stop_losses"],      r4["stop_losses"],     "low"),
+        ("Expired",          r12["time_expires"],     r4["time_expires"],    None),
+    ]
+
+    for label, v12, v4, better in rows:
+        if better == "high":
+            winner = "12am" if v12 > v4 else ("4am" if v4 > v12 else "tie")
+        elif better == "low":
+            winner = "12am" if v12 < v4 else ("4am" if v4 < v12 else "tie")
+        else:
+            winner = ""
+        fmt = ".1f" if isinstance(v12, float) else "d" if isinstance(v12, int) else ""
+        print(f"  {label:<22} {v12:>16{fmt}} {v4:>16{fmt}} {winner:>8}")
+
+    print(f"  {sep}")
+    verdict = "4am" if r4["total_pnl"] > r12["total_pnl"] else "12am"
+    print(f"\n  VERDICT: {verdict} pre-market levels produce better results")
+    print(f"  Reason: {'Tighter 4am zones = cleaner confirmations, fewer false breaks' if verdict == '4am' else 'Wider 12am zones = earlier breakout triggers, more opportunity'}")
+    print()
+
+
 if __name__ == "__main__":
     import sys
-    if "--etf" in sys.argv:
-        run_etf_backtest()
+    if "--compare" in sys.argv:
+        compare_premarket_windows()
+    elif "--etf" in sys.argv:
+        pm = "12am" if "--12am" in sys.argv else "4am"
+        run_etf_backtest(premarket=pm)
     elif "--both" in sys.argv:
         run_backtest()
         print("\n" + "=" * 62 + "\n")
