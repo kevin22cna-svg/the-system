@@ -72,16 +72,20 @@ SCAN_INTERVAL_SEC      = 300    # Scan every 5 minutes
 OPTION_PROFIT_TARGET   = 0.50   # +50%
 OPTION_STOP_LOSS       = 0.30   # -30%
 SHARE_PROFIT_TARGET    = 0.05   # +5%
-SHARE_STOP_LOSS        = 0.05   # -5%
+SHARE_STOP_LOSS        = 0.05   # -5% hard floor (catastrophic backstop)
+TRAILING_STOP_PCT      = 0.01   # 1% below session high — MANDATORY
 
 # ── Session State ─────────────────────────────────────────────────────────────
 session = {
     "trades_today":   0,
     "daily_pnl":      0.0,
-    "executed_syms":  [],   # don't re-enter same ticker
+    "executed_syms":  [],    # don't re-enter same ticker
     "halted":         False,
     "scan_count":     0,
     "log":            [],
+    "open_positions": {},    # sym → fill_price
+    "session_highs":  {},    # sym → highest price seen since entry
+    "trailing_stops": {},    # sym → current trailing stop price (high × 0.99)
 }
 
 def now_et():
@@ -148,10 +152,12 @@ STEP 2 — EXECUTE ETF TRADE (if ETF scored 7+)
   1. Check available buying power from get_portfolio — use ALL of it (not a fixed amount)
   2. review_equity_order FIRST for the ETF symbol
   3. If review clean: {"simulate only" if dry_run else "place_equity_order — fractional market buy using full buying power"}
-  4. After fill, place ONE limit sell for ALL shares at fill_price * 1.05  (+5%)
-  5. Set stop loss at fill_price * 0.95  (-5%)
+  4. After fill, place ONE limit sell for ALL shares at fill_price * 1.05  (+5% profit target)
+  5. DO NOT place a fixed stop-loss order — trailing stop is managed dynamically by the
+     Python monitor every 5 minutes (sells if price drops 1% below its session high).
+     Initial trailing stop = fill_price * 0.99. It rises with the price, never falls.
   6. Profits roll back into buying power automatically — next trade uses the larger balance
-  7. Report: symbol, direction, shares, fill price, target_price (+5%), stop_price (-5%)
+  7. Report: symbol, direction, shares, fill_price, target_price (+5%)
 
 STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
   Get quotes for the full explosion scanner universe. Score each ticker 0-12:
@@ -171,7 +177,8 @@ STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
     → Not already in position today
 
   For score 7+: review_equity_order then {"simulate" if dry_run else "place_equity_order — full buying power market buy"}
-  After fill: place ONE limit sell for ALL shares at +5%, stop at -5%
+  After fill: place ONE limit sell at +5% (profit target only — NO fixed stop order,
+  trailing stop managed dynamically by Python monitor at 1% below session high)
 
 STEP 4 — REPORT
 Return JSON:
@@ -184,9 +191,10 @@ Return JSON:
   }},
   "scores": [{{"sym":"SOFI","score":9,"direction":"LONG","flow":["unusual options"]}}],
   "executed": [{{"sym":"SSO","type":"shares","direction":"LONG",
-                 "shares":0.38,"cost":25.00,
+                 "shares":0.38,"fill_price":64.38,"cost":25.00,
                  "target_price":"$67.60 (+5%, sell all shares)","target_order_id":"...",
-                 "stop_price":"$62.20 (-5%)","order_id":"...", "status":"filled"}}],
+                 "trailing_stop_initial":"$63.74 (-1% from fill, rises with price)",
+                 "order_id":"...", "status":"filled"}}],
   "alerts": [{{"sym":"QLD","score":6,"reason":"EMA fan forming but not confirmed yet"}}],
   "skipped": [{{"sym":"SDS","reason":"market bullish, wrong direction"}}]
 }}
@@ -196,6 +204,127 @@ MODE: {mode}
 MAX TRADES TODAY: {MAX_DAILY_TRADES}
 POSITION SIZE: ${POSITION_SIZE_USD} (fractional shares ok)
 """.strip()
+
+
+# ── Trailing Stop Monitor ─────────────────────────────────────────────────────
+def monitor_positions(client, dry_run=True):
+    """Check open positions, update trailing highs, sell if stop hit."""
+    if not session["open_positions"]:
+        return
+
+    now = now_et()
+    positions_data = []
+    for sym, fill_price in session["open_positions"].items():
+        current_high = session["session_highs"].get(sym, fill_price)
+        current_stop = session["trailing_stops"].get(sym, round(fill_price * (1 - TRAILING_STOP_PCT), 4))
+        positions_data.append({
+            "sym": sym,
+            "fill_price": fill_price,
+            "session_high": current_high,
+            "trailing_stop": current_stop,
+        })
+
+    print(f"\n  📡 TRAILING STOP MONITOR | {now.strftime('%I:%M:%S %p ET')}")
+    for p in positions_data:
+        print(f"     {p['sym']}: high ${p['session_high']:.2f} | stop ${p['trailing_stop']:.2f}")
+
+    monitor_prompt = f"""
+TRAILING STOP MONITOR — {now.strftime('%I:%M:%S %p ET')}
+
+Open positions to check:
+{json.dumps(positions_data, indent=2)}
+
+INSTRUCTIONS:
+1. Call get_equity_positions to confirm which symbols are still held
+2. Call get_equity_quotes for each confirmed symbol to get current bid/ask/last price
+3. For each position evaluate:
+   a. If current_price > session_high → this is a new session high (stop rises with it)
+   b. If current_price <= trailing_stop → TRAILING STOP HIT → sell immediately
+      {"Use review_equity_order only (DRY RUN — no real sell)" if dry_run else
+       "Use place_equity_order: type=market, side=sell, quantity=shares_available_for_sells"}
+   c. Otherwise → HOLD, report current price
+
+TRAILING STOP RULE: stop = session_high × {1 - TRAILING_STOP_PCT:.4f} (1% below peak)
+The stop only moves UP, never down. Locks in profits as price rises.
+
+Return JSON only:
+{{
+  "checks": [
+    {{
+      "sym": "SSO",
+      "current_price": 64.50,
+      "new_session_high": 65.00,
+      "trailing_stop": 64.35,
+      "action": "HOLD",
+      "reason": "price above stop",
+      "shares_sold": null,
+      "sell_order_id": null
+    }}
+  ]
+}}
+""".strip()
+
+    response = client.beta.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=2000,
+        messages=[{"role": "user", "content": monitor_prompt}],
+        mcp_servers=[MCP_SERVER],
+        betas=["mcp-client-2025-04-04"],
+    )
+
+    raw = ""
+    for block in response.content:
+        if hasattr(block, "text"):
+            raw += block.text
+        elif getattr(block, "type", "") == "mcp_tool_use":
+            print(f"  🔧 {block.name}...")
+
+    try:
+        clean = raw.strip()
+        if "```" in clean:
+            for part in clean.split("```"):
+                stripped = part.strip()
+                if stripped.startswith("{") or stripped.startswith("json"):
+                    clean = stripped.replace("json", "", 1).strip()
+                    break
+        result = json.loads(clean)
+    except Exception:
+        print(f"  ⚠️  Monitor parse error — raw: {raw[:400]}")
+        return
+
+    for check in result.get("checks", []):
+        sym = check.get("sym")
+        if not sym or sym not in session["open_positions"]:
+            continue
+
+        current_price = check.get("current_price", 0)
+        new_high = check.get("new_session_high", current_price)
+        action = check.get("action", "HOLD")
+
+        # Update trailing high if price made a new peak
+        if new_high > session["session_highs"].get(sym, 0):
+            session["session_highs"][sym] = new_high
+            session["trailing_stops"][sym] = round(new_high * (1 - TRAILING_STOP_PCT), 4)
+            print(f"  📈 {sym}: new high ${new_high:.2f} → trailing stop ${session['trailing_stops'][sym]:.2f}")
+
+        if action == "SELL":
+            fill_price = session["open_positions"][sym]
+            pnl = (current_price - fill_price) / fill_price * POSITION_SIZE_USD
+            session["daily_pnl"] += pnl
+            del session["open_positions"][sym]
+            session["session_highs"].pop(sym, None)
+            session["trailing_stops"].pop(sym, None)
+            print(f"  🔴 {sym}: TRAILING STOP HIT @ ${current_price:.2f} "
+                  f"({'SIMULATED' if dry_run else 'SOLD'}) | "
+                  f"P&L: ${pnl:+.2f} | Daily: ${session['daily_pnl']:+.2f}")
+            if check.get("sell_order_id"):
+                print(f"     Sell order: {check['sell_order_id']}")
+            if session["daily_pnl"] <= DAILY_LOSS_LIMIT:
+                session["halted"] = True
+                print(f"  🛑 Daily loss limit hit (${session['daily_pnl']:.2f}). HALTED.")
+        else:
+            print(f"  ✅ {sym}: ${current_price:.2f} | "
+                  f"stop ${session['trailing_stops'].get(sym, 0):.2f} | HOLD")
 
 
 # ── Scan + Execute Cycle ──────────────────────────────────────────────────────
@@ -210,6 +339,9 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
         explosion = list(dict.fromkeys(primary + on_watch))  # deduped, order preserved
         scan_universe = etfs + [t for t in explosion if t not in etfs] + \
                         [t for t in catalyst if t not in etfs and t not in explosion]
+
+    # Monitor open positions first (trailing stop logic)
+    monitor_positions(client, dry_run=dry_run)
 
     session["scan_count"] += 1
     now = now_et()
@@ -318,15 +450,27 @@ Past 3:45pm force-close: {past_force_close()}
         for t in executed:
             sym = t.get("sym","?")
             cost = t.get("cost", 0)
+            fill_price = t.get("fill_price", 0)
             session["trades_today"] += 1
             session["executed_syms"].append(sym)
+
+            # Initialize trailing stop tracking for this position
+            if fill_price > 0:
+                session["open_positions"][sym] = fill_price
+                session["session_highs"][sym]  = fill_price
+                session["trailing_stops"][sym] = round(fill_price * (1 - TRAILING_STOP_PCT), 4)
+
+            trailing_stop_price = session["trailing_stops"].get(sym, 0)
             print(f"  ✅ {sym}: {t.get('type','?')} | {t.get('direction','')} | "
-                  f"Cost ${cost:.2f} | Target {t.get('target','')} | Stop {t.get('stop','')}")
+                  f"Cost ${cost:.2f} | Fill ${fill_price:.2f} | "
+                  f"Target {t.get('target_price','')} | "
+                  f"Trail stop ${trailing_stop_price:.2f} (1% below peak)")
             if t.get("order_id"):
                 print(f"     Order ID: {t['order_id']} | Status: {t.get('status','')}")
             session["log"].append({
                 "time": now.isoformat(), "sym": sym,
-                "type": t.get("type"), "cost": cost, "dry_run": dry_run
+                "type": t.get("type"), "cost": cost, "fill_price": fill_price,
+                "trailing_stop_initial": trailing_stop_price, "dry_run": dry_run
             })
     else:
         print(f"  📭 No auto-executions this cycle (no ticker hit {AUTO_EXECUTE_THRESHOLD}+ threshold)")
@@ -385,7 +529,8 @@ def main():
   Safety rules active:
   ✅ Max {MAX_DAILY_TRADES} auto-trades per day
   ✅ review_order before every place_order
-  ✅ Profit monitor fires immediately after fill
+  ✅ Trailing stop: 1% below session high (MANDATORY — managed every 5 min)
+  ✅ Profit target: +5% limit order placed immediately after fill
   ✅ No new entries after 3:45pm ET
   ✅ Daily loss limit: ${abs(DAILY_LOSS_LIMIT):.0f}
   ✅ Never re-enter same ticker same day

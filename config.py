@@ -21,9 +21,11 @@ CONFIG = {
 
     # ── SHARES TRADING ───────────────────────────────────────────────────────
     "shares": {
-        "profit_target": 0.05,    # +5% — sell intraday the moment this hits
-        "stop_loss": 0.05,        # -5% stop
+        "profit_target": 0.05,          # +5% — sell intraday the moment this hits
+        "stop_loss": 0.05,              # -5% hard floor (catastrophic backstop)
         "take_profit_intraday": True,   # PROFIT FIRST — don't wait for close
+        "trailing_stop": True,          # MANDATORY — follow price up, sell 1% below peak
+        "trailing_stop_pct": 0.01,      # 1% below session high
     },
 
     # ── OPTIONS TRADING ──────────────────────────────────────────────────────
@@ -223,8 +225,10 @@ CONFIG = {
         "scan_interval_sec": 120,   # 2-min scan — faster than main 5-min to catch midday SPY/QQQ moves
         "intraday_only": True,
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
-        "profit_target": 0.05,   # +5% — sell full position, reinvest everything
-        "stop_loss":     0.05,   # -5% full position
+        "profit_target": 0.05,          # +5% — sell full position, reinvest everything
+        "stop_loss":     0.05,          # -5% hard floor (catastrophic backstop)
+        "trailing_stop": True,          # MANDATORY — follow price up, sell 1% below peak
+        "trailing_stop_pct": 0.01,      # 1% below session high
         "use_full_buying_power": True,  # compound — use all available cash each trade
         "price_range": {"min": 10.0, "max": 150.0},  # overrides scanner range — QLD ~$92
         # Direction logic: SPY/QQQ up = buy SSO/QLD | SPY/QQQ down = buy SDS/QID
