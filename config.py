@@ -173,6 +173,8 @@ CONFIG = {
             "NU","RKT","OPEN","HIMS","IONQ","QBTS",
             # User-added regulars
             "NOK","AMC","BAC","SNAP","HTZ","PFE",
+            # Quantum computing — Trump EO June 2026 catalyst
+            "RGTI","QUBT",
         ],
         # On watch — stocks near $10-$25 range, rotate in when price qualifies
         "on_watch": [
