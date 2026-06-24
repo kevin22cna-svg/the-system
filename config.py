@@ -201,6 +201,8 @@ CONFIG = {
             "NVDA","AMD","MU","AVGO","ARM","MSFT","AAPL","META","GOOGL","AMZN","TSLA",
             # High-momentum tech (above $25 range)
             "PLTR","CRWV","HOOD","RKLB",
+            # AI Infrastructure — server/rack-scale manufacturing
+            "CLS",   # Celestica — AMD Helios partner, $3M OTM call sweep June 24 2026
             # Nuclear — Trump $17.5B / 10 reactor commitment (June 2026)
             "CCJ","BAM","BWXT","CW","LEU",
             # Nuclear ETFs
@@ -253,6 +255,23 @@ CONFIG = {
         "reddit_user_agent": "KevinTrader/1.0",
         "news_search_enabled": True,    # web search for catalysts
         "earnings_check_enabled": True,
+
+        # ── OPTIONS FLOW SOURCES (check before every trade) ──────────────────
+        # Priority order — check ALL before entering any options position
+        "options_flow_sources": [
+            "IBKR",          # Interactive Brokers — real-time sweep & block data
+            "Pineify",       # Pineify options flow — sweep detection + sentiment
+            "OptionStrat",   # OptionStrat flow — visualized flow, strike heatmap
+            "Barchart",      # Barchart unusual options activity — volume/OI screener
+        ],
+        # Flow signal rules:
+        #   Sweep at ask = aggressive buy = bullish conviction
+        #   Block at bid = aggressive sell / hedge = bearish or exit signal
+        #   $1M+ premium = institutional (not retail noise)
+        #   $3M+ premium = major conviction — follow the strike and expiry
+        #   OTM sweep = directional bet, not a hedge
+        #   Same direction as your setup = A++ signal, full size
+        #   Opposite direction = SKIP or cut size to $12.50 max
     },
 
     # ── EOD LEAD SCANNER ─────────────────────────────────────────────────────

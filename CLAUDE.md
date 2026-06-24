@@ -182,14 +182,21 @@ WHALE / UNUSUAL OPTIONS FLOW (+2 pts) — MOST IMPORTANT:
   - "Don't fight the whales — they have better information"
   - Follow their STRIKE (most swept strike = most conviction)
   - Follow their EXPIRY (0DTE sweep = they expect it today)
-  - Source: unusualwhales.com, finviz unusual options, flowalgo
+  - $1M+ premium = institutional. $3M+ = major conviction — follow it.
+  - OTM sweep at ask = directional bet (not a hedge) = highest signal
+  - PRIORITY SOURCES (check in this order):
+      1. IBKR (Interactive Brokers) — real-time sweep & block data
+      2. Pineify — sweep detection + flow sentiment
+      3. OptionStrat — visualized flow, strike heatmap
+      4. Barchart — unusual options activity screener (volume/OI)
+      5. unusualwhales.com, flowalgo, finviz unusual options
 
 DARK POOL PRINTS (+1 pt):
   - Block trades >$1M executed off-exchange
   - Buy print + bullish setup = institutional accumulation
   - Sell print + bearish setup = institutional distribution
   - Dark pool prints PRECEDE moves — they position before the catalyst
-  - Source: unusualwhales.com dark pool, finviz dark pool
+  - Source: IBKR, unusualwhales.com dark pool, finviz dark pool
 
 WHALE-INFORMED SIZING:
   Technical 7+ + Whale confirms same direction = FULL $50
