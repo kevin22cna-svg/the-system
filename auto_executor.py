@@ -195,9 +195,11 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
         etfs     = CONFIG["leveraged_etfs"]["tickers"]   # SSO, SDS, QLD, QID — checked first
         primary  = CONFIG["tickers"].get("primary", [])
         on_watch = CONFIG["tickers"].get("on_watch", [])
-        # ETFs first; then $10-$25 rotation universe + on-watch list
+        catalyst = CONFIG["tickers"].get("catalyst_plays", [])  # any price, fractional only
+        # ETFs first; then $10-$25 rotation universe + on-watch; catalyst plays appended last
         explosion = list(dict.fromkeys(primary + on_watch))  # deduped, order preserved
-        scan_universe = etfs + [t for t in explosion if t not in etfs]
+        scan_universe = etfs + [t for t in explosion if t not in etfs] + \
+                        [t for t in catalyst if t not in etfs and t not in explosion]
 
     session["scan_count"] += 1
     now = now_et()
@@ -221,8 +223,10 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
         return
 
     from config import CONFIG
-    etf_tickers = CONFIG["leveraged_etfs"]["tickers"]
-    explosion_tickers = [t for t in scan_universe if t not in etf_tickers]
+    etf_tickers      = CONFIG["leveraged_etfs"]["tickers"]
+    catalyst_tickers = CONFIG["tickers"].get("catalyst_plays", [])
+    explosion_tickers = [t for t in scan_universe
+                         if t not in etf_tickers and t not in catalyst_tickers]
 
     user_msg = f"""
 Run the Wiley Strat scan. PRIORITY ORDER:
@@ -233,8 +237,14 @@ Run the Wiley Strat scan. PRIORITY ORDER:
    Determine SPY/QQQ direction, score each relevant ETF, execute if 7+.
    If any ETF scores 7+ → execute it and STOP (skip explosion scanner).
 
-2. FALLBACK — only if NO ETF scored 7+, scan the explosion universe:
+2. FALLBACK — only if NO ETF scored 7+, scan the explosion universe ($10-$25):
    {json.dumps(explosion_tickers[:50])}
+
+3. CATALYST PLAYS — score alongside fallback scan (any price, fractional shares):
+   {json.dumps(catalyst_tickers)}
+   No price filter — $25 buys fractional shares regardless of share price.
+   Score using Casey framework + catalyst strength (Trump nuclear EO = confirmed catalyst +2).
+   Execute if score 7+ AND catalyst play is moving (up 3%+ on the day OR breaking key level).
 
 Already executed today (skip these): {json.dumps(session['executed_syms'])}
 Trades used today: {session['trades_today']}/{MAX_DAILY_TRADES}

@@ -191,6 +191,14 @@ CONFIG = {
         ],
         # 0DTE options universe
         "options_0dte": ["SPY","QQQ","IWM"],
+        # Catalyst plays — any price, fractional shares, strong government/policy catalysts
+        # No price ceiling — $25 position buys fractional shares regardless of share price
+        "catalyst_plays": [
+            # Nuclear — Trump $17.5B / 10 reactor commitment (June 2026)
+            "CCJ","BAM","BWXT","CW","LEU",
+            # Nuclear ETFs
+            "URA","URNM","NUKZ",
+        ],
     },
 
     # ── LEVERAGED ETFs (intraday only — NEVER held overnight) ────────────────
