@@ -191,9 +191,14 @@ CONFIG = {
         ],
         # 0DTE options universe
         "options_0dte": ["SPY","QQQ","IWM"],
-        # Catalyst plays — any price, fractional shares, strong government/policy catalysts
-        # No price ceiling — $25 position buys fractional shares regardless of share price
+        # Catalyst plays — any price, fractional shares, profit at all times
+        # No price ceiling — $25 buys fractional shares regardless of share price
+        # Trigger: score 7+ AND moving 3%+ on the day OR breaking a key level
         "catalyst_plays": [
+            # Mega-cap tech movers (high price = fractional only, same % profit)
+            "NVDA","AMD","MU","AVGO","ARM","MSFT","AAPL","META","GOOGL","AMZN","TSLA",
+            # High-momentum tech (above $25 range)
+            "PLTR","CRWV","HOOD","RKLB",
             # Nuclear — Trump $17.5B / 10 reactor commitment (June 2026)
             "CCJ","BAM","BWXT","CW","LEU",
             # Nuclear ETFs

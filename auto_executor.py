@@ -243,8 +243,12 @@ Run the Wiley Strat scan. PRIORITY ORDER:
 3. CATALYST PLAYS — score alongside fallback scan (any price, fractional shares):
    {json.dumps(catalyst_tickers)}
    No price filter — $25 buys fractional shares regardless of share price.
-   Score using Casey framework + catalyst strength (Trump nuclear EO = confirmed catalyst +2).
-   Execute if score 7+ AND catalyst play is moving (up 3%+ on the day OR breaking key level).
+   GOAL: capture upside on any strong mover at all times.
+   Score using full Casey framework. Execute if score 7+ AND:
+     - Up 3%+ on the day OR breaking a key resistance level on volume
+     - For nuclear names (CCJ/BAM/BWXT/CW/LEU/URA/URNM/NUKZ): confirmed Trump EO catalyst = +2 pts
+     - For mega-cap tech (NVDA/AMD/MU/AVGO/ARM etc): earnings/product catalyst OR sector rotation surge
+   Fractional fill: place $25 order — Robinhood handles the fraction automatically.
 
 Already executed today (skip these): {json.dumps(session['executed_syms'])}
 Trades used today: {session['trades_today']}/{MAX_DAILY_TRADES}
