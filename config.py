@@ -219,13 +219,21 @@ CONFIG = {
         "iwm_long":  "UWM",   # 2x IWM long
         "iwm_short": "TWM",   # 2x IWM short
         "premarket_window": "12am",  # use midnight overnight high/low for PMH/PML
-        "scan_priority": "first",  # check these before explosion scanner
+        "scan_priority": "first",  # check these FIRST before explosion scanner every cycle
+        "scan_interval_sec": 120,   # 2-min scan — faster than main 5-min to catch midday SPY/QQQ moves
         "intraday_only": True,
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
         "profit_target": 0.05,   # +5% — sell full position, reinvest everything
         "stop_loss":     0.05,   # -5% full position
         "use_full_buying_power": True,  # compound — use all available cash each trade
         "price_range": {"min": 10.0, "max": 150.0},  # overrides scanner range — QLD ~$92
+        # Direction logic: SPY/QQQ up = buy SSO/QLD | SPY/QQQ down = buy SDS/QID
+        "direction_trigger": {
+            "spy_drop_pct": 0.005,   # SPY drops 0.5% from session high = buy SDS
+            "qqq_drop_pct": 0.005,   # QQQ drops 0.5% from session high = buy QID
+            "spy_rise_pct": 0.005,   # SPY rises 0.5% from session low = buy SSO
+            "qqq_rise_pct": 0.005,   # QQQ rises 0.5% from session low = buy QLD
+        },
         "note": "Never hold overnight — decay and gap risk make EOD exit mandatory",
     },
 
