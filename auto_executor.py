@@ -267,7 +267,7 @@ Past 3:45pm force-close: {past_force_close()}
         messages=[{"role": "user", "content": user_msg}],
         mcp_servers=[MCP_SERVER],
         betas=["mcp-client-2025-04-04"],
-        tools=[{"type": "web_search_20250305", "name": "web_search"}]
+        tools=[{"type": "web_search_20260209", "name": "web_search"}]
     )
 
     raw = ""
