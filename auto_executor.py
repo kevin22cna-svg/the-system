@@ -112,91 +112,78 @@ def build_system_prompt(dry_run: bool) -> str:
     return f"""
 You are the Wiley Strat Auto-Executor. Mode: {mode}
 
-PRIORITY ORDER THIS WEEK:
-  1st → Check SSO / SDS / QLD / QID (2x leveraged ETFs) using Casey's full framework
-  2nd → If NONE of the 4 ETFs score 7+, fall back to explosion scanner universe
+CURRENT FOCUS — LEVERAGED INDEX ETFs ONLY (until account is funded):
+  Account is small ($25-30 buying power). ONLY trade leveraged index ETFs as fractional shares.
+  Do NOT run explosion scanner or catalyst plays — focus 100% on these 9 tickers:
 
-WHY THIS ORDER:
-  - These are traded as fractional shares with $50 position size (same as options)
-  - 2x leverage gives options-like moves without theta decay
-  - Same Casey system: 4 levels, EMA fan, zone plays, price structure
-  - Direction: if market bullish → SSO (SPY) or QLD (QQQ) | if bearish → SDS (SPY) or QID (QQQ)
-  - Never trade both the long and short of the same index on the same day
+  INDEX 2x (primary — most liquid):
+    SPY direction → SSO (long) or SDS (short)
+    QQQ direction → QLD (long) or QID (short)
+    IWM direction → UWM (long) or TWM (short)
 
-STEP 1 — PRIORITY ETF CHECK (do this first every cycle)
-  Get quotes for: SSO, SDS, QLD, QID
-  Pre-market levels (set ONCE at 9:20am, hold all session):
-    PMH = highest price SPY/QQQ traded since 12:00am midnight
-    PML = lowest price SPY/QQQ traded since 12:00am midnight
-    Pull these using get_equity_historicals (1min bars from midnight).
-    These are your Casey zones for the entire session — do not recalculate.
+  SECTOR 3x (secondary — only if index is in chop):
+    XLK/QQQ bullish  → TECL (3x tech long)  | bearish → TECS (3x tech short)
+    MAG7 bullish      → MAGX (2x Mag7 long)
 
-  Determine market direction from SPY/QQQ price action:
-    - SPY breaking above PMH/PDH → bullish → evaluate SSO (SPY long) and/or QLD (QQQ long) and/or UWM (IWM long)
-    - SPY breaking below PML/PDL → bearish → evaluate SDS (SPY short) and/or QID (QQQ short) and/or TWM (IWM short)
-    - SPY between PML and PMH    → chop → skip all 6, go to Step 3
+  WHY THIS FOCUS:
+    - You know SPY/QQQ direction from Casey framework every morning — just trade the 2x version
+    - No earnings risk, no float issues, no news risk, tight spreads, fully fractional
+    - SPY moves 2.5% → SSO moves 5% → profit target hit. Happens on most active days.
+    - Every profit compounds into the next trade — grow the account fast before expanding
 
-  Score each relevant ETF using Casey's A+ framework (0-10):
+  NEVER execute individual stocks while in this focused mode.
+  NEVER trade both the long AND short of the same index on the same day.
+
+STEP 1 — DETERMINE MARKET DIRECTION (every cycle)
+  Pull SPY and QQQ historicals to read the session:
+    PMH = highest price since midnight (set at 9:20am, hold all session)
+    PML = lowest price since midnight
+    PDH = previous day high
+    PDL = previous day low
+
+  Classify:
+    SPY/QQQ ABOVE PMH+PDH → STRONGEST BULL → buy SSO + QLD (both if buying power allows)
+    SPY/QQQ ABOVE PMH only → BULL → buy SSO or QLD (pick whichever QQQ/SPY stronger)
+    SPY/QQQ BELOW PML+PDL → STRONGEST BEAR → buy SDS + QID
+    SPY/QQQ BELOW PML only → BEAR → buy SDS or QID
+    SPY/QQQ BETWEEN PML and PMH → CHOP → skip index, check TECL/MAGX on XLK strength
+    ALL LEVELS HOLDING → BALANCED DAY → no trade, wait for expansion
+
+STEP 2 — SCORE using Casey A+ framework (0-10):
     +2  EMA fan aligned on SPY/QQQ (13>48>200 bullish OR 200>48>13 bearish) and spacing out
-    +2  15min candle body close above PMH (longs) or below PML (shorts)
+    +2  15min candle BODY close above PMH (longs) or below PML (shorts)
     +2  Zone play confirmed + price structure (HH/HL for longs, LH/LL for shorts)
-    +1  Candlestick pattern at zone (bull flag, bear flag, wedge, rejection)
+    +1  Candlestick pattern at zone (bull flag, bear flag, rejection candle)
     +1  13 EMA pullback entry trigger on 2min chart
     +1  Volume above average on setup candle
     +1  VWAP in agreement with direction
 
-  If any ETF scores 7+ → execute that trade (STOP, skip Step 3)
-  If no ETF scores 7+ → proceed to Step 3 (explosion scanner fallback)
+  Score 7+ → execute. Score <7 → wait for next cycle.
 
-STEP 2 — EXECUTE ETF TRADE (if ETF scored 7+)
-  1. Check available buying power from get_portfolio — use ALL of it (not a fixed amount)
-  2. review_equity_order FIRST for the ETF symbol
-  3. If review clean: {"simulate only" if dry_run else "place_equity_order — fractional market buy using full buying power"}
-  4. After fill, place ONE limit sell for ALL shares at fill_price * 1.05  (+5% profit target)
-  5. DO NOT place a fixed stop-loss order — trailing stop is managed dynamically by the
-     Python monitor every 5 minutes (sells if price drops 1% below its session high).
-     Initial trailing stop = fill_price * 0.99. It rises with the price, never falls.
-  6. Profits roll back into buying power automatically — next trade uses the larger balance
-  7. Report: symbol, direction, shares, fill_price, target_price (+5%)
-
-STEP 3 — EXPLOSION SCANNER FALLBACK (only if no ETF setup found)
-  Get quotes for the full explosion scanner universe. Score each ticker 0-12:
-    +2  EMA fan aligned (proxy: >3% move = fan forming)
-    +2  15min above PMH (proxy: >5% = confirmed, 2-5% = forming)
-    +2  Zone play + structure confirmed
-    +2  ORDER FLOW: appears in Barchart unusual options today
-    +1  Barchart top options volume
-    +2  Insider buy >$100K today (OpenInsider)
-    +1  Volume above 10M average
-    -1  Overextended >15%
-
-  Filter:
-    → Price $10–$25 (rotation range — skip anything outside this band)
-    → Avg daily volume >= 500K shares
-    → Score >= {AUTO_EXECUTE_THRESHOLD} for auto-execution
-    → Not already in position today
-
-  For score 7+: review_equity_order then {"simulate" if dry_run else "place_equity_order — full buying power market buy"}
-  After fill: place ONE limit sell at +5% (profit target only — NO fixed stop order,
-  trailing stop managed dynamically by Python monitor at 1% below session high)
+STEP 3 — EXECUTE
+  1. get_portfolio → check exact buying power (use ALL of it)
+  2. review_equity_order FIRST for the chosen symbol
+  3. {"simulate only — review_equity_order, no real order" if dry_run else "place_equity_order — fractional market buy, use full buying power"}
+  4. After fill: place ONE limit sell at fill_price × 1.05 (+5% profit target)
+  5. NO fixed stop order — trailing stop managed by Python monitor (1% below session high)
+  6. Profit rolls back into buying power — next trade uses the larger balance
 
 STEP 4 — REPORT
 Return JSON:
 {{
   "scan_time": "...",
-  "etf_check": {{
-    "market_direction": "BULL/BEAR/CHOP",
-    "etf_scores": [{{"sym":"SSO","score":8,"direction":"LONG","reason":"EMA fan + PMH break"}}],
-    "etf_executed": true
-  }},
-  "scores": [{{"sym":"SOFI","score":9,"direction":"LONG","flow":["unusual options"]}}],
-  "executed": [{{"sym":"SSO","type":"shares","direction":"LONG",
+  "market_direction": "BULL/BEAR/CHOP/BALANCED",
+  "spy_vs_levels": "above PMH+PDH / above PMH only / between / below PML",
+  "qqq_vs_levels": "above PMH+PDH / above PMH only / between / below PML",
+  "etf_scores": [{{"sym":"QLD","score":8,"direction":"LONG","reason":"EMA fan + PMH break + HH/HL"}}],
+  "executed": [{{"sym":"QLD","type":"shares","direction":"LONG",
                  "shares":0.38,"fill_price":64.38,"cost":25.00,
-                 "target_price":"$67.60 (+5%, sell all shares)","target_order_id":"...",
-                 "trailing_stop_initial":"$63.74 (-1% from fill, rises with price)",
+                 "target_price":"$67.60 (+5%)","target_order_id":"...",
+                 "trailing_stop_initial":"$63.74 (rises with price)",
                  "order_id":"...", "status":"filled"}}],
-  "alerts": [{{"sym":"QLD","score":6,"reason":"EMA fan forming but not confirmed yet"}}],
-  "skipped": [{{"sym":"SDS","reason":"market bullish, wrong direction"}}]
+  "alerts": [{{"sym":"SSO","score":6,"reason":"EMA fan forming, not confirmed yet"}}],
+  "skipped": [{{"sym":"SDS","reason":"market bullish, wrong direction"}}],
+  "wait_reason": "CHOP — SPY between PML and PMH, waiting for expansion"
 }}
 
 ACCOUNTS: {ACCOUNT}
@@ -411,32 +398,26 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
     except Exception as _e:
         print(f"  ⚠️  Flow scanner skipped: {_e}")
 
+    # Focused tickers — leveraged indexes only until account funded
+    focused_tickers = ["SPY", "QQQ", "IWM", "SSO", "SDS", "QLD", "QID", "UWM", "TWM",
+                       "TECL", "TECS", "MAGX"]
+
     user_msg = f"""
-Run the Wiley Strat scan. PRIORITY ORDER:
+FOCUSED MODE — LEVERAGED INDEX ETFs ONLY (account small, compounding up)
 
-1. FIRST — check the leveraged ETFs using Casey's full framework:
-   {etf_tickers}
-   SPY→SSO/SDS | QQQ→QLD/QID | IWM→UWM/TWM — pick highest scoring, execute best setup
-   Determine SPY/QQQ direction, score each relevant ETF, execute if 7+.
-   If any ETF scores 7+ → execute it and STOP (skip explosion scanner).
+Step 1: Pull SPY + QQQ historicals to get today's PMH/PML/PDH/PDL.
+Step 2: Classify market direction (BULL / BEAR / CHOP / BALANCED).
+Step 3: Score the correct directional ETF using Casey A+ framework.
+Step 4: Execute if score 7+. Wait if chop.
 
-2. FALLBACK — only if NO ETF scored 7+, scan the explosion universe ($10-$25):
-   {json.dumps(explosion_tickers[:50])}
+Target tickers: {focused_tickers}
+  BULL  → SSO (SPY 2x) and/or QLD (QQQ 2x) and/or UWM (IWM 2x)
+  BEAR  → SDS (SPY 2x) and/or QID (QQQ 2x) and/or TWM (IWM 2x)
+  XLK/QQQ strong bull but SPY chop → TECL (3x tech) or MAGX (2x Mag7)
 
-3. CATALYST PLAYS — score alongside fallback scan (any price, fractional shares):
-   {json.dumps(catalyst_tickers)}
-   No price filter — $25 buys fractional shares regardless of share price.
-   GOAL: capture upside on any strong mover at all times.
-   Score using full Casey framework. Execute if score 7+ AND:
-     - Up 3%+ on the day OR breaking a key resistance level on volume
-     - For nuclear names (CCJ/BAM/BWXT/CW/LEU/URA/URNM/NUKZ): confirmed Trump EO catalyst = +2 pts
-     - For mega-cap tech (NVDA/AMD/MU/AVGO/ARM etc): earnings/product catalyst OR sector rotation surge
-   Fractional fill: place $25 order — Robinhood handles the fraction automatically.
-
-Already executed today (skip these): {json.dumps(session['executed_syms'])}
-Trades used today: {session['trades_today']}/{MAX_DAILY_TRADES}
-Current time: {now.strftime('%I:%M:%S %p ET')}
-Option window open: {in_option_window()}
+Already executed today (skip): {json.dumps(session['executed_syms'])}
+Trades used: {session['trades_today']}/{MAX_DAILY_TRADES}
+Time: {now.strftime('%I:%M:%S %p ET')}
 Past 3:45pm force-close: {past_force_close()}
 {flow_section}
 
