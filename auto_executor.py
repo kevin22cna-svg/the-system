@@ -370,6 +370,47 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
     explosion_tickers = [t for t in scan_universe
                          if t not in etf_tickers and t not in catalyst_tickers]
 
+    # ── Live options flow scan (yfinance — free, no API key) ──────────────────
+    flow_signals = {}
+    flow_section = ""
+    try:
+        from flow_scanner import get_flow_signals as _get_flow
+        print("  📡 Scanning options flow...")
+        flow_tickers = list(dict.fromkeys(
+            CONFIG["tickers"]["options_0dte"] + catalyst_tickers + etf_tickers
+        ))
+        flow_signals = _get_flow(flow_tickers)
+        active = [(s, d) for s, d in flow_signals.items() if d["score_pts"] > 0]
+        active.sort(key=lambda x: x[1]["call_premium"] + x[1]["put_premium"], reverse=True)
+        if active:
+            lines = []
+            for sym, d in active[:10]:
+                total = d["call_premium"] + d["put_premium"]
+                lines.append(
+                    f"  {sym}: {d['direction']} | "
+                    f"call=${d['call_premium']//1000}K put=${d['put_premium']//1000}K | "
+                    f"+{d['score_pts']}pts to score if direction matches"
+                )
+                top = d.get("top_call") or d.get("top_put")
+                if top:
+                    lines.append(
+                        f"    → {top['expiry']} ${top['strike']} {top['side'].upper()} | "
+                        f"vol {top['volume']:,} / OI {top['open_interest']:,} "
+                        f"({top['vol_oi_ratio']}x) | {top['tier']}"
+                    )
+            flow_section = "\nLIVE OPTIONS FLOW (yfinance scan this cycle):\n" + "\n".join(lines)
+            print(f"  ✅ Flow signals: {len(active)} ticker(s) with unusual activity")
+            for sym, d in active[:5]:
+                tot = d["call_premium"] + d["put_premium"]
+                icon = "📈" if d["direction"] == "BULLISH" else "📉"
+                print(f"     {icon} {sym}: {d['direction']} | "
+                      f"${tot//1000}K total | +{d['score_pts']}pts")
+        else:
+            flow_section = "\nLIVE OPTIONS FLOW: No unusual activity detected this cycle."
+            print("  📭 No unusual options flow this cycle.")
+    except Exception as _e:
+        print(f"  ⚠️  Flow scanner skipped: {_e}")
+
     user_msg = f"""
 Run the Wiley Strat scan. PRIORITY ORDER:
 
@@ -397,6 +438,13 @@ Trades used today: {session['trades_today']}/{MAX_DAILY_TRADES}
 Current time: {now.strftime('%I:%M:%S %p ET')}
 Option window open: {in_option_window()}
 Past 3:45pm force-close: {past_force_close()}
+{flow_section}
+
+FLOW SCORING RULES:
+  If a ticker has BULLISH flow AND your setup direction is LONG  → add flow score_pts to Casey score
+  If a ticker has BEARISH flow AND your setup direction is SHORT → add flow score_pts to Casey score
+  If flow OPPOSES your setup direction → reduce score by 1 or skip entirely
+  🐳 WHALE tier ($1M+) = treat same as whale confirmation from CLAUDE.md smart money section
 
 {"USE review_equity_order ONLY — do NOT place real orders (DRY RUN)" if dry_run else
  "EXECUTE LIVE — place_equity_order for real money, fractional shares ok"}
