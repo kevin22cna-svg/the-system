@@ -118,9 +118,9 @@ STEP 1 — PRIORITY ETF CHECK (do this first every cycle)
     These are your Casey zones for the entire session — do not recalculate.
 
   Determine market direction from SPY/QQQ price action:
-    - SPY breaking above PMH/PDH → bullish → evaluate SSO and/or QLD
-    - SPY breaking below PML/PDL → bearish → evaluate SDS and/or QID
-    - SPY between PML and PMH    → chop → skip all 4, go to Step 3
+    - SPY breaking above PMH/PDH → bullish → evaluate SSO (SPY long) and/or QLD (QQQ long) and/or UWM (IWM long)
+    - SPY breaking below PML/PDL → bearish → evaluate SDS (SPY short) and/or QID (QQQ short) and/or TWM (IWM short)
+    - SPY between PML and PMH    → chop → skip all 6, go to Step 3
 
   Score each relevant ETF using Casey's A+ framework (0-10):
     +2  EMA fan aligned on SPY/QQQ (13>48>200 bullish OR 200>48>13 bearish) and spacing out
@@ -229,6 +229,7 @@ Run the Wiley Strat scan. PRIORITY ORDER:
 
 1. FIRST — check the leveraged ETFs using Casey's full framework:
    {etf_tickers}
+   SPY→SSO/SDS | QQQ→QLD/QID | IWM→UWM/TWM — pick highest scoring, execute best setup
    Determine SPY/QQQ direction, score each relevant ETF, execute if 7+.
    If any ETF scores 7+ → execute it and STOP (skip explosion scanner).
 

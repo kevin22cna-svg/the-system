@@ -195,11 +195,14 @@ CONFIG = {
     "leveraged_etfs": {
         # SPY 2x: SSO (long) / SDS (short)
         # QQQ 2x: QLD (long) / QID (short)
-        "tickers": ["SSO", "SDS", "QLD", "QID"],
+        # IWM 2x: UWM (long) / TWM (short)
+        "tickers": ["SSO", "SDS", "QLD", "QID", "UWM", "TWM"],
         "spy_long":  "SSO",   # 2x S&P long
         "spy_short": "SDS",   # 2x S&P short
         "qqq_long":  "QLD",   # 2x QQQ long
         "qqq_short": "QID",   # 2x QQQ short
+        "iwm_long":  "UWM",   # 2x IWM long
+        "iwm_short": "TWM",   # 2x IWM short
         "premarket_window": "12am",  # use midnight overnight high/low for PMH/PML
         "scan_priority": "first",  # check these before explosion scanner
         "intraday_only": True,

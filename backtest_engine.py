@@ -298,6 +298,11 @@ ETF_PAIRS = {
         "avg_volume": 45_000_000,
         "long_etf": "QLD", "short_etf": "QID", "leverage": 2.0,
     },
+    "IWM": {
+        "start_price": 200.0, "daily_vol": 0.013, "drift": 0.0002,
+        "avg_volume": 35_000_000,
+        "long_etf": "UWM", "short_etf": "TWM", "leverage": 2.0,
+    },
 }
 
 ETF_PROFIT_TARGET = 0.05   # +5% — sell full position, compound into next trade
