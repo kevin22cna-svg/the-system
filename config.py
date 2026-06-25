@@ -170,12 +170,13 @@ CONFIG = {
         # Rotated in/out based on price staying in range — scanner filters by price live
         "primary": [
             # ── TOP 20 (always scanned every cycle) ──────────────────────────
-            # Core momentum: proven movers, retail-driven, float-sensitive
-            "SOFI","AAL","FCEL","CLSK","RIOT",           # fintech + crypto proxies (best 2)
-            "SOUN","BBAI","JOBY","LUNR","RDW","ASTS",    # AI audio + space/drone
-            "NIO","RIVN","NU","RKT","OPEN","HIMS",       # EV + fintech + health
-            "GME","SNAP","IONQ",                          # meme/retail + quantum (swapped in)
+            "SOFI","AAL","FCEL","CLSK","RIOT",           # fintech + crypto proxies
+            "SOUN","JOBY","LUNR","ASTS",                 # AI audio + space/drone
+            "NIO","RIVN","RKT","HIMS",                   # EV + fintech + health
+            "GME","SNAP","IONQ",                          # meme/retail + quantum
+            "NVDA","AMD","PLTR","TSLA",                  # high-price tech (fractional)
             # ── ROTATION (scanned when B2 quota allows) ──────────────────────
+            "BBAI","RDW","NU","OPEN",                    # rotated out of top 20
             "QBTS","NOK","AMC","BAC","HTZ","PFE",
             # Quantum computing — Trump EO June 2026 catalyst
             "RGTI","QUBT",
