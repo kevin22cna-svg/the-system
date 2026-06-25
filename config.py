@@ -169,16 +169,20 @@ CONFIG = {
         # Primary watchlist — $10-$25 rotation universe (fallback after ETFs)
         # Rotated in/out based on price staying in range — scanner filters by price live
         "primary": [
-            # High-volume momentum ($10-$25 range)
-            "SOFI","AAL","CIFR","FCEL","CLSK","RIOT","WULF","HIVE",
-            "SOUN","BBAI","JOBY","LUNR","RDW","ASTS","NIO","RIVN",
-            "NU","RKT","OPEN","HIMS","IONQ","QBTS",
-            # User-added regulars
-            "NOK","AMC","BAC","SNAP","HTZ","PFE",
+            # ── TOP 20 (always scanned every cycle) ──────────────────────────
+            # Core momentum: proven movers, retail-driven, float-sensitive
+            "SOFI","AAL","FCEL","CLSK","RIOT",           # fintech + crypto proxies (best 2)
+            "SOUN","BBAI","JOBY","LUNR","RDW","ASTS",    # AI audio + space/drone
+            "NIO","RIVN","NU","RKT","OPEN","HIMS",       # EV + fintech + health
+            "GME","SNAP","IONQ",                          # meme/retail + quantum (swapped in)
+            # ── ROTATION (scanned when B2 quota allows) ──────────────────────
+            "QBTS","NOK","AMC","BAC","HTZ","PFE",
             # Quantum computing — Trump EO June 2026 catalyst
             "RGTI","QUBT",
-            # Meme / retail squeeze names — fire when RVOL >2x
-            "GME","BB","CLOV","SPCE","LCID","DKNG",
+            # Meme / retail squeeze names
+            "BB","CLOV","SPCE","LCID","DKNG",
+            # Crypto proxies (rotated out — use RIOT+CLSK above as representatives)
+            "CIFR","WULF","HIVE",
         ],
         # On watch — stocks near $10-$25 range, rotate in when price qualifies
         "on_watch": [
