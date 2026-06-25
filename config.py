@@ -177,11 +177,13 @@ CONFIG = {
             "NOK","AMC","BAC","SNAP","HTZ","PFE",
             # Quantum computing — Trump EO June 2026 catalyst
             "RGTI","QUBT",
+            # Meme / retail squeeze names — fire when RVOL >2x
+            "GME","BB","CLOV","SPCE","LCID","DKNG",
         ],
         # On watch — stocks near $10-$25 range, rotate in when price qualifies
         "on_watch": [
             "MARA","CCL","DAL","KMI","RKLB","CRWV","PLTR","HOOD",
-            "SPCX","BBAI","POET","BABA","GME",
+            "SPCX","BBAI","POET","BABA",
         ],
         # Volume Trades watchlist
         "volume_trades": [
