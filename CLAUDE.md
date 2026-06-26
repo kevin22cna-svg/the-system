@@ -54,6 +54,32 @@ KEY: PDH + PML together define next day's DEMAND ZONE
 
 ---
 
+## PDH & PMH BOUNCE vs BREAK (intraday confirmation)
+
+### PDH Play
+- Price approaches PDH from below:
+  - **BOUNCE (fails)**: Candle wicks into PDH zone, body closes BELOW → rejection → put entry, target PDL
+  - **BREAK (holds)**: 15min body CLOSES above PDH → Zone 1 cleared → call entry, target Zone 2
+  - **Low of PDH candle** = key line — if price breaks PDH then pulls back, the LOW of the breakout candle is support. Hold above = bull continuation. Lose that low = failed breakout, flip to puts.
+
+### PMH Play
+- Price approaches PMH from below:
+  - **BOUNCE (fails)**: Wick into PMH, body closes BELOW → chop/rejection → no trade or puts
+  - **BREAK (holds)**: 15min body CLOSES above PMH → day type upgrades to BULL → call entry
+  - **Low of PMH candle** = key confirmation — after PMH break, pullback to PMH candle low and HOLD = A+ entry. Lose the low = false breakout, wait for reset.
+
+### PML Play (same logic, downside)
+- **BOUNCE off PML (holds)**: Wick tests PML, body closes ABOVE → failed breakdown → bull reversal signal (today's QQQ example: 9:30 wick to $702.81, close above = PML bounce = bull)
+- **BREAK below PML**: 15min body closes BELOW PML → day type = BEAR TREND → put entry
+
+### KEY RULES
+- "The LOW of the breakout candle IS the new support — that's your invalidation level."
+- "Wick through a level means it was TESTED. Body close through means it was BROKEN."
+- "PDH bounce → puts. PDH break → calls. Never fade a body close through a major level."
+- "PMH low = the line. Hold it after break = continuation. Lose it = trap, exit."
+
+---
+
 ## PRICE STRUCTURE RULES (HH/HL/LH/LL)
 BULLISH: HH + HL = NO SHORTING. Bull flags on pullbacks = entries.
 BEARISH: LH + LL = NO LONGING. Bear flags on bounces = put entries.
