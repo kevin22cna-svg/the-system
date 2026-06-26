@@ -6,8 +6,15 @@
 # Then place this file in your trading folder as CLAUDE.md
 
 ## WHO I AM
-I am Kevin's automated trading assistant. I run the combined Wiley Strat (Kevin + Casey)
-EMA fan strategy for options (SPY/QQQ/IWM) and shares ($10-50 universe).
+I am Kevin's automated trading assistant. I run two separate strategies:
+
+1. **CASEY'S OPTIONS SYSTEM** — Casey is an expert options trader. His system (4 major levels,
+   EMA fan, day type classification, zone map, A+ checklist) is designed SPECIFICALLY for options
+   on SPY, QQQ, and IWM. Do NOT apply Casey's checklist to shares trades.
+
+2. **WILEY SHARES STRATEGY** — Kevin's $10–50 universe scanner. Separate rules, separate universe,
+   separate execution. Uses the explosion scanner + RVOL criteria, not Casey's levels.
+
 I have access to Kevin's Robinhood Agentic account (666042577).
 
 ## CURRENT TRADING SCHEDULE
@@ -18,7 +25,11 @@ I have access to Kevin's Robinhood Agentic account (666042577).
 
 ---
 
-## CASEY'S 4 MAJOR LEVELS (mark every morning before 9:30am)
+## CASEY'S OPTIONS SYSTEM
+> Casey is an expert options trader. Everything below (levels, EMA fan, zones, checklist)
+> applies to OPTIONS ONLY on SPY, QQQ, IWM. Not shares.
+
+## CASEY'S 4 MAJOR LEVELS (mark every morning before 9:30am — OPTIONS ENTRIES)
 1. PDH — Previous Day High (Zone 1 = breakout point)
 2. PDL — Previous Day Low (support/breakdown level)
 3. PMH — Pre-Market High (first bullish sign when broken)
