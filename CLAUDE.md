@@ -28,6 +28,17 @@ Draw zones from WICK TIP to BODY of following candle (not just a line).
 
 ---
 
+## INDEX TIMING RULE
+- Indexes (SPY, QQQ, IWM) do NOT make their real move until AFTER 9:45am ET
+- The directional move MUST happen by 12:00pm ET — if it hasn't, it's a chop day
+- Window: 9:45am → 12:00pm = the move zone
+- Before 9:45am = opening noise, don't chase, let price find direction
+- After 12:00pm with no move = reduce size, avoid new entries, expect chop
+
+RULE: "If the index hasn't broken a major level with conviction by 12pm, the day is over for trend trades."
+
+---
+
 ## DAY TYPE CLASSIFICATION (read at open, 9:30-9:45am)
 - PDH + PMH both broken → STRONGEST BULL → full size calls
 - PDH broken only       → BULL TREND → favor calls
