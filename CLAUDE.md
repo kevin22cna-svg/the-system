@@ -226,17 +226,27 @@ Profit target: +5% (sell immediately when hit intraday)
 Stop loss: -5%
 Max trades per day: 3
 
-Scanner universe (primary):
+PHILOSOPHY: We buy shares of RISING, QUALITY names — real companies with real businesses
+that are trending up. Not penny pumps, not lottery plays. Fractional on the big indexes
+and leveraged ETFs for the base; full shares on scanner names that are showing momentum.
+
+TARGET: Stocks making a clean move with structure (HH/HL), RVOL confirmation, and a
+real reason to be up. NU going +5% on volume is the model — catch the move, take +5%, move on.
+
+Scanner universe (quality names, $10-50):
 SPCX, FCEL, CRWV, HIMS, SOFI, CIFR, AAL, CCL, CLSK, RIOT,
 WULF, MARA, RKT, OPEN, NU, KMI, DAL, LUNR, RDW, JOBY,
 SOUN, BBAI, QBTS, IONQ, HIVE, RIVN, NIO, ASTS, RKLB
 
-Penny screener criteria:
-- Price $0.50-$50
-- Float <20M (supernova: <10M)
-- Volume >500K daily
-- RVOL >2x
-- Up 2%+ minimum
+Fractional base layer (always available regardless of capital):
+QQQ, SPY, QLD (2x QQQ), SSO (2x SPY) — direction set by day type
+
+Entry criteria (all required):
+- Price $10-$50 (sweet spot for full shares at $50 position size)
+- RVOL >2x on setup candle (confirmed by both fundamentals + intraday historicals)
+- Up 2%+ on the day minimum
+- Clean HH/HL price structure — rising stock, not a dead cat bounce
+- Volume >500K daily average (quality names only — no low-float pumps)
 
 ---
 
