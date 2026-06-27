@@ -230,8 +230,13 @@ PHILOSOPHY: We buy shares of RISING, QUALITY names — real companies with real 
 that are trending up. Not penny pumps, not lottery plays. Fractional on the big indexes
 and leveraged ETFs for the base; full shares on scanner names that are showing momentum.
 
-TARGET: Stocks making a clean move with structure (HH/HL), RVOL confirmation, and a
-real reason to be up. NU going +5% on volume is the model — catch the move, take +5%, move on.
+TARGET: Stocks already in an UPTREND (HH/HL over multiple days) that are continuing
+their move today on volume. NU going +5% on volume is the model — catch the continuation,
+take +5%, move on.
+
+NOT THIS: Bounce plays off 52-week lows, short squeezes, or reversal plays are a different
+category — they may work but they are NOT the shares strategy. We need the trend already
+established BEFORE entry, not hoping it reverses.
 
 Scanner universe (quality names, $10-50):
 SPCX, FCEL, CRWV, HIMS, SOFI, CIFR, AAL, CCL, CLSK, RIOT,
@@ -243,9 +248,10 @@ QQQ, SPY, QLD (2x QQQ), SSO (2x SPY) — direction set by day type
 
 Entry criteria (all required):
 - Price $10-$50 (sweet spot for full shares at $50 position size)
+- UPTREND confirmed: stock is making HH/HL over the past 3-5 days minimum
 - RVOL >2x on setup candle (confirmed by both fundamentals + intraday historicals)
 - Up 2%+ on the day minimum
-- Clean HH/HL price structure — rising stock, not a dead cat bounce
+- Clean HH/HL price structure on the intraday chart — continuation, not reversal
 - Volume >500K daily average (quality names only — no low-float pumps)
 
 ---
