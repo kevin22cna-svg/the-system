@@ -170,7 +170,7 @@ SCORING (0-10):
 +2 Zone play confirmed + structure match (HH/HL or LH/LL)
 +1 Candlestick pattern at zone (flag, wedge, rejection candle)
 +1 13 EMA pullback entry trigger on 2min
-+1 Volume above average on setup candle
++1 Volume: RVOL >2x on setup candle (see RVOL method below)
 +1 VWAP in agreement with direction
 
 SCORE 8-10 = A+ SETUP — full $50 size
@@ -257,6 +257,30 @@ Wide spreads = instant loss on entry. Reject and find a better strike.
 
 Only exception: penny stock tier (Tier 2/3) which uses 500K+ with RVOL >2x instead.
 For options specifically: 10M+ volume ensures the option chain has tight spreads.
+
+## RVOL METHOD (How to calculate Relative Volume)
+
+Use BOTH sources and mix — they confirm each other:
+
+SOURCE 1 — get_equity_fundamentals (ADV baseline):
+  - Pulls the average daily volume (10-day or 30-day)
+  - Use this as the denominator for all RVOL math
+  - Average volume per 5-min bar = ADV ÷ 78 (78 bars in a trading day)
+
+SOURCE 2 — get_equity_historicals intraday 5-min (live confirmation):
+  - Pull today's 5-min bars up to the setup candle
+  - Setup candle RVOL = candle volume ÷ (ADV ÷ 78)
+  - Cumulative RVOL = total today's volume ÷ (ADV × bars_elapsed/78)
+
+MIXED RULE — both must agree for full +1 point:
+  - Setup candle RVOL >2x AND cumulative day RVOL >1.5x → full +1 point
+  - Only one confirms → 0.5 points (note in analysis but don't count full)
+  - Neither confirms → 0 points, flag as low-conviction breakout
+
+HARD THRESHOLDS:
+  - Shares entry: setup candle RVOL >2x REQUIRED (hard gate, not optional)
+  - Shares scanner: RVOL >2x on daily volume vs 10-day ADV
+  - Options: underlying stock RVOL >1x minimum (at least average volume day)
 
 ---
 
