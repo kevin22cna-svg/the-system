@@ -359,6 +359,44 @@ These are rare but can return 200-1000%+ on options.
 
 ## MORNING ROUTINE (what to run at each time)
 
+### STEP 0 — CATALYST CHECK (runs FIRST on "good morning let's get started")
+
+Before pulling levels or running any scan:
+
+1. **Web search today's US econ calendar.** Flag HIGH-impact only: CPI, PPI,
+   PCE, NFP/employment, retail sales, GDP, ISM, JOLTS, FOMC decision.
+2. **Web search today's Fed speaker schedule.** For each speaker, determine
+   whether they currently hold an FOMC vote (Chair, Vice Chair, Vice Chair for
+   Supervision, NY Fed, + this year's four rotating Reserve Bank voters).
+   Non-voters do NOT gate the session.
+3. **Build the events list and call the checker:**
+
+   ```python
+   from datetime import time
+   from catalyst_check import Event, evaluate_catalysts
+
+   events = [
+       # fill in from steps 1-2; omit time_et if unknown (-> veto to be safe)
+       Event("CPI", time_et=time(8, 30)),
+       Event("Fed Chair speech", time_et=time(12, 30),
+             is_fed_speaker=True, speaker_is_voter=True),
+   ]
+   cat = evaluate_catalysts(events)
+   print(cat)
+   ```
+
+4. **If `cat.veto` is True → report the reason and STOP.** Do not pull levels,
+   do not run the scan, do not enter trades. After the event prints and ~15 min
+   pass, re-run Step 0; the settled event drops out and the gate runs normally.
+   **Trade the reaction, not the run-up.**
+
+   If `cat.veto` is False → proceed to 9:20am prep normally, passing
+   `cat.bearish_catalyst_pending` into the regime gate.
+
+NOTE: The catalyst flag blocks the session in EITHER direction — it's
+bidirectional risk, not just bearish. The flag name matches the regime gate
+signature.
+
 ### 9:20am — PRE-MARKET PREP
 ```
 run pre-market prep
@@ -436,6 +474,7 @@ run the eod scanner for tomorrow
 ---
 
 ## FILES IN THIS FOLDER
+- catalyst_check.py      → Step 0 catalyst gate (econ calendar + Fed speaker check, runs before regime gate)
 - config.py              → Master settings (change anything here)
 - kevin_0dte_system.py   → Options analysis + Casey system
 - explosion_scanner.py   → Shares scanner (68 tickers, 3 tiers)
