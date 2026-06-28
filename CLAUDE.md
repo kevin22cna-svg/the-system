@@ -244,7 +244,13 @@ WULF, MARA, RKT, OPEN, NU, KMI, DAL, LUNR, RDW, JOBY,
 SOUN, BBAI, QBTS, IONQ, HIVE, RIVN, NIO, ASTS, RKLB
 
 Fractional base layer (always available regardless of capital):
-QQQ, SPY, QLD (2x QQQ), SSO (2x SPY) — direction set by day type
+  Indexes:      QQQ, SPY, QLD (2x QQQ), SSO (2x SPY) — direction set by day type
+  AI/Robotics:  BOTZ, ARKQ, UBOT (2x Robotics/AI)
+  Semis:        SMH (VanEck), SOXX (iShares) — cleaner than SOXL, no 3x decay
+  Leveraged:    NVDL (2x NVDA daily) — high risk, fractional only
+  China tech:   KWEB — use when QQQ lags or China tech leads
+  Rule: Pick the fractional that aligns with the day's sector leadership.
+        Semis leading → SMH/SOXX. AI theme → BOTZ/ARKQ. Broad market → QLD/SSO.
 
 Entry criteria (all required):
 - Price $10-$50 (sweet spot for full shares at $50 position size)
