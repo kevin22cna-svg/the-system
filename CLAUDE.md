@@ -257,15 +257,24 @@ SOUN, BBAI, QBTS, IONQ, HIVE, RIVN, NIO, ASTS, RKLB
 
 Fractional base layer (always available regardless of capital):
   Indexes:      QQQ, SPY, QLD (2x QQQ bull), SSO (2x SPY bull) — direction set by day type
-  Bear hedges:  QID (2x QQQ bear), SDS (2x SPY bear), TWM (2x IWM bear) — bear day only
-  IWM plays:    UWM (2x IWM bull), TWM (2x IWM bear) — Thursday focus instrument
+  Bear hedges:  QID (2x QQQ bear), SDS (2x SPY bear) — bear day only
+  IWM plays:    UWM (2x IWM bull), TWM (2x IWM bear) — Thursday focus instrument only
   AI/Robotics:  BOTZ, ARKQ, UBOT (2x Robotics/AI)
   Semis:        SMH (VanEck), SOXX (iShares) — cleaner than SOXL, no 3x decay
-  Leveraged:    NVDL (2x NVDA daily) — high risk, fractional only
   China tech:   KWEB — use when QQQ lags or China tech leads
-  Rule: Pick the fractional that aligns with the day's sector leadership.
-        Semis leading → SMH/SOXX. AI theme → BOTZ/ARKQ. Broad market → QLD/SSO.
-        Bear day type → swap QLD→QID, SSO→SDS, UWM→TWM.
+
+Single-Stock 2x Leveraged (bull/bear pairs — fracs, match to day's leader):
+  NVDA:   NVDL (bull) / NVDS (bear)
+  TSLA:   TSLL (bull) / TSLS (bear)
+  GOOGL:  GGLL (bull) / GGLS (bear)
+  AMZN:   AMZU (bull) / AMZD (bear)
+  META:   METU (bull) / METD (bear)
+  AMD:    AMDL (bull) / bear unconfirmed
+  COIN:   CONL (bull) / bear unconfirmed
+  Rule: Bull day type → buy the 2x bull of whichever Mag 10 name is leading.
+        Bear day type → buy the 2x bear of whichever name is weakest.
+        These move ~2x the underlying — on a +5% TSLA day, TSLL does ~+10%.
+        Fractional only — no hold overnight on bear side unless conviction is high.
 
 Entry criteria (all required):
 - Price $10-$50 (sweet spot for full shares at $50 position size)
