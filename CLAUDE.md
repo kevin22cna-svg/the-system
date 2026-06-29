@@ -130,45 +130,39 @@ Structure shift = support rejects on retest → first Bear Flag = entry signal
 
 ---
 
-## THREE-TRADE CAPITAL STRUCTURE (current phase: building to SPY/QQQ)
+## TWO-TRADE CAPITAL STRUCTURE (current phase: building account)
 
 ### The Framework
-Every session deploys across three trade types — NO deep OTM lottery plays.
-Goal: build account to the level where SPY and QQQ can be played properly.
+Every session deploys across two trade types — NO deep OTM lottery plays.
+Goal: grow account through consistent, low-risk frac + scanner execution.
 
-### Trade 1 — Fractional Shares (base, always available)
-- Buy fractional QQQ, SPY, QLD (2x QQQ), SSO (2x SPY), or scanner names
-- Direction confirmed by Casey's day type + EMA fan
+### Trade 1 — Index Fractionals (base, always available)
+- Buy fractional indexes: QQQ, SPY, QLD (2x QQQ bull), SSO (2x SPY bull)
+- Bear day: swap to QID (2x QQQ bear), SDS (2x SPY bear)
+- Direction confirmed by Casey's day type + EMA fan at 9:45am
+- **NO UWM or TWM** — those are Thursday rotation instruments only, not Trade 1
 - Low risk, always liquid, no expiry pressure
 - Size: ~50% of available capital
-- Exit: +5% profit target or -5% stop (same as shares rule)
+- Exit: +5% profit target or -5% stop
 
-### Trade 2 — Full Shares from Scanner ($10–50 universe)
+### Trade 2 — Screener Shares ($10–50 universe)
 - Run explosion scanner, pick top scorer with RVOL >2x
-- Full share position, not fractional — need clean entry + zone confirmed
-- Size: ~35% of available capital
+- Full share position — need clean entry + zone confirmed + HH/HL structure
+- Size: ~35–50% of remaining capital
 - Exit: +5% profit target or -5% stop, GTC sell limit placed immediately after fill
 
-### Trade 3 — ITM IWM Calls or Puts (options tier, no lottery)
-- IWM only until account grows enough for SPY/QQQ options
-- ITM = delta 0.50+ (strike AT or BELOW current price for calls, AT or ABOVE for puts)
-- ITM options move like shares with leverage — no wasting away on theta waiting for a miracle
-- 2DTE default (not 0DTE lottery), apply full Casey checklist before entry
-- Size: ~15% of available capital (~$8–15 range)
-- Exit: +50% profit target / -30% stop (2DTE targets from DTE table)
-- NEVER deep OTM 0DTE lottery plays — those are gone
+### Stage Graduation (as account grows)
+Current stage: Trade 1 = indexes (fracs) | Trade 2 = screener (shares)
 
-### Why IWM over SPY/QQQ right now
-- IWM options are cheaper: ITM IWM call ≈ $1–3, vs SPY/QQQ ITM ≈ $5–15+
-- Same Casey levels apply (PDH/PDL/PMH/PML work on IWM too)
-- Same EMA fan system — IWM follows QQQ lead
-- When account grows to $500+, graduate to SPY. $1000+, add QQQ.
+Next stage:
+- **Stage 1** = Indexes OR Shares OR Options (pick the best setup for the day)
+- **Stage 2** = Shares AND Options (run both simultaneously)
 
-### Capital graduation thresholds
-- Current (<$200):  Fracs + shares scanner + ITM IWM options
-- $200–$500:        Add SPY 2DTE ITM options (replace IWM tier)
-- $500–$1000:       Full SPY + IWM options, larger share positions
-- $1000+:           Full SPY + QQQ options, Casey full universe
+Capital thresholds:
+- Current (<$200):   Trade 1 (index fracs) + Trade 2 (scanner shares)
+- $200–$500:         Stage 1 unlocks — indexes or shares or IWM ITM options
+- $500–$1000:        Stage 2 unlocks — shares + SPY ITM options together
+- $1000+:            Full Casey universe — SPY + QQQ options + scanner
 
 ---
 
