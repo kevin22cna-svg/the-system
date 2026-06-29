@@ -28,14 +28,15 @@ One instrument family per day — no decision fatigue.
 
 | Day | Focus | Instruments |
 |-----|-------|-------------|
-| **Monday** | Scanner shares | $10–50 universe (explosion scanner, full RVOL checklist) |
+| **Monday** | Full universe | All — scanner + QQQ + SPY + IWM (weekend gave us sector/name context) |
 | **Tuesday** | QQQ | QLD (2x bull) or QID (2x bear) — fracs, direction by day type |
 | **Wednesday** | SPY | SSO (2x bull) or SDS (2x bear) — fracs, direction by day type |
 | **Thursday** | IWM | UWM (2x bull), TWM (2x bear) — shares, fracs, or 2DTE options |
 | **Friday** | Full universe | All of the above — scanner + QQQ + SPY + IWM |
 
 RULES:
-- Each day's instrument is locked — don't drift to other names
+- Monday = Friday = full deployment. Weekend research (sectors, social, news) informs which names lead.
+- Tue/Wed/Thu instrument is locked — don't drift to other names those days
 - Bull/bear instrument selected at 9:45am after day type classification
 - Thursday IWM options apply the full Casey A+ checklist (7+/10 required)
 - Friday is full deployment — run all four plays if setups confirm
