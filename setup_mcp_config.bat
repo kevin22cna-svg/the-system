@@ -1,11 +1,8 @@
 @echo off
 REM setup_mcp_config.bat — Full TradingView MCP setup for Windows
-REM Double-click to run. Does everything: npm install, rules.json, .mcp.json
-REM Only requirement: Node.js installed + repos already extracted to your home folder.
+REM Double-click to run. Finds ZIPs, extracts, npm installs, writes all config files.
 REM
-REM Expected folder structure:
-REM   %USERPROFILE%\tradingview-mcp\          (from tradesdontlie/tradingview-mcp)
-REM   %USERPROFILE%\tradingview-mcp-jackson\  (from LewisWJackson/tradingview-mcp-jackson)
+REM Looks for ZIPs in: C:\  Downloads\  Desktop\  Documents\
 
 setlocal enabledelayedexpansion
 
@@ -17,59 +14,127 @@ set "TV_PATH=%TV_DIR%\src\server.js"
 set "JACKSON_PATH=%JACKSON_DIR%\src\server.js"
 set "RULES_PATH=%JACKSON_DIR%\rules.json"
 
+set "DOWNLOADS=%USERPROFILE%\Downloads"
+set "DESKTOP=%USERPROFILE%\Desktop"
+set "DOCUMENTS=%USERPROFILE%\Documents"
+
 echo.
 echo =========================================
 echo   TradingView MCP  ^|  Full Setup
 echo =========================================
 echo.
 
-REM ── Check Node.js ────────────────────────────────────────────────────────────
+REM ── Check Node.js ─────────────────────────────────────────────────────────
 where node >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Node.js not found.
     echo        Install from https://nodejs.org then re-run this script.
-    pause
-    exit /b 1
+    pause & exit /b 1
 )
 for /f "tokens=*" %%v in ('node --version') do set NODE_VER=%%v
 echo [OK] Node.js %NODE_VER%
-
-REM ── tradingview-mcp npm install ───────────────────────────────────────────────
 echo.
-echo [1/4] tradingview-mcp npm install...
-if not exist "%TV_DIR%\package.json" (
-    echo       MISSING: extract tradingview-mcp to %TV_DIR%
-    echo       Download: https://github.com/tradesdontlie/tradingview-mcp/archive/refs/heads/main.zip
-    goto skip_tv_npm
+
+REM ── Extract tradingview-mcp ───────────────────────────────────────────────
+echo [1/5] Looking for tradingview-mcp ZIP...
+set "TV_ZIP="
+for %%Z in (
+    "C:\tradingview-mcp-main.zip"
+    "C:\tradingview-mcp.zip"
+    "%DOWNLOADS%\tradingview-mcp-main.zip"
+    "%DOWNLOADS%\tradingview-mcp.zip"
+    "%DESKTOP%\tradingview-mcp-main.zip"
+    "%DESKTOP%\tradingview-mcp.zip"
+    "%DOCUMENTS%\tradingview-mcp-main.zip"
+    "%DOCUMENTS%\tradingview-mcp.zip"
+) do (
+    if "!TV_ZIP!"=="" if exist %%Z set "TV_ZIP=%%~Z"
 )
-pushd "%TV_DIR%"
-call npm install
-popd
-echo       Done.
-:skip_tv_npm
 
-REM ── tradingview-mcp-jackson npm install ──────────────────────────────────────
-echo.
-echo [2/4] tradingview-mcp-jackson npm install...
-if not exist "%JACKSON_DIR%\package.json" (
-    echo       MISSING: extract tradingview-mcp-jackson to %JACKSON_DIR%
-    echo       Download: https://github.com/LewisWJackson/tradingview-mcp-jackson/archive/refs/heads/main.zip
-    goto skip_jackson_npm
+if defined TV_ZIP (
+    echo       Found: !TV_ZIP!
+    if exist "%TV_DIR%" (
+        echo       Already extracted — skipping.
+    ) else (
+        echo       Extracting...
+        powershell -Command "Expand-Archive -Path '!TV_ZIP!' -DestinationPath '%USERPROFILE%\tv-mcp-tmp' -Force"
+        for /d %%D in ("%USERPROFILE%\tv-mcp-tmp\*") do (
+            move "%%D" "%TV_DIR%" >nul
+        )
+        rmdir /s /q "%USERPROFILE%\tv-mcp-tmp" 2>nul
+        echo       Extracted to %TV_DIR%
+    )
+) else (
+    if exist "%TV_DIR%\package.json" (
+        echo       ZIP not found but folder exists — skipping extract.
+    ) else (
+        echo       NOT FOUND. Put the ZIP in C:\  or Downloads\  then re-run.
+        echo       Download: https://github.com/tradesdontlie/tradingview-mcp/archive/refs/heads/main.zip
+    )
 )
-pushd "%JACKSON_DIR%"
-call npm install
-popd
-echo       Done.
-:skip_jackson_npm
 
-REM ── Write rules.json ─────────────────────────────────────────────────────────
+REM ── Extract tradingview-mcp-jackson ──────────────────────────────────────
 echo.
-echo [3/4] Writing Wiley Strat rules.json...
+echo [2/5] Looking for tradingview-mcp-jackson ZIP...
+set "JACKSON_ZIP="
+for %%Z in (
+    "C:\tradingview-mcp-jackson-main.zip"
+    "C:\tradingview-mcp-jackson.zip"
+    "%DOWNLOADS%\tradingview-mcp-jackson-main.zip"
+    "%DOWNLOADS%\tradingview-mcp-jackson.zip"
+    "%DESKTOP%\tradingview-mcp-jackson-main.zip"
+    "%DESKTOP%\tradingview-mcp-jackson.zip"
+    "%DOCUMENTS%\tradingview-mcp-jackson-main.zip"
+    "%DOCUMENTS%\tradingview-mcp-jackson.zip"
+) do (
+    if "!JACKSON_ZIP!"=="" if exist %%Z set "JACKSON_ZIP=%%~Z"
+)
+
+if defined JACKSON_ZIP (
+    echo       Found: !JACKSON_ZIP!
+    if exist "%JACKSON_DIR%" (
+        echo       Already extracted — skipping.
+    ) else (
+        echo       Extracting...
+        powershell -Command "Expand-Archive -Path '!JACKSON_ZIP!' -DestinationPath '%USERPROFILE%\jackson-tmp' -Force"
+        for /d %%D in ("%USERPROFILE%\jackson-tmp\*") do (
+            move "%%D" "%JACKSON_DIR%" >nul
+        )
+        rmdir /s /q "%USERPROFILE%\jackson-tmp" 2>nul
+        echo       Extracted to %JACKSON_DIR%
+    )
+) else (
+    if exist "%JACKSON_DIR%\package.json" (
+        echo       ZIP not found but folder exists — skipping extract.
+    ) else (
+        echo       NOT FOUND. Put the ZIP in C:\  or Downloads\  then re-run.
+        echo       Download: https://github.com/LewisWJackson/tradingview-mcp-jackson/archive/refs/heads/main.zip
+    )
+)
+
+REM ── npm install both ──────────────────────────────────────────────────────
+echo.
+echo [3/5] Running npm install...
+if exist "%TV_DIR%\package.json" (
+    echo       tradingview-mcp...
+    pushd "%TV_DIR%" & call npm install & popd
+) else (
+    echo       SKIP: tradingview-mcp folder not found.
+)
+if exist "%JACKSON_DIR%\package.json" (
+    echo       tradingview-mcp-jackson...
+    pushd "%JACKSON_DIR%" & call npm install & popd
+) else (
+    echo       SKIP: tradingview-mcp-jackson folder not found.
+)
+
+REM ── Write rules.json ─────────────────────────────────────────────────────
+echo.
+echo [4/5] Writing Wiley Strat rules.json...
 if not exist "%JACKSON_DIR%" (
-    echo       Skipped — jackson folder not found.
+    echo       SKIP: jackson folder not found.
     goto skip_rules
 )
-
 > "%RULES_PATH%" (
 echo {
 echo   "watchlist": [
@@ -93,12 +158,12 @@ echo     "name": "Wiley Strat — Casey Options + Shares Scanner",
 echo     "systems": {
 echo       "casey_options": {
 echo         "instruments": ["SPY", "QQQ", "IWM"],
-echo         "secondary": ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "TSLA", "AVGO", "AMD", "PLTR"],
+echo         "secondary": ["AAPL","MSFT","NVDA","AMZN","GOOGL","META","TSLA","AVGO","AMD","PLTR"],
 echo         "default_dte": 2,
 echo         "position_size_usd": 50
 echo       },
 echo       "wiley_shares": {
-echo         "universe": "$10-50 price range, HH/HL uptrend confirmed 3-5 days minimum",
+echo         "universe": "$10-50, HH/HL uptrend 3-5 days minimum",
 echo         "position_size_usd": 50,
 echo         "profit_target_pct": 5,
 echo         "stop_loss_pct": 5,
@@ -108,8 +173,8 @@ echo     }
 echo   },
 echo   "weekly_rotation": {
 echo     "monday":    "Full universe — scanner + QQQ + SPY + IWM",
-echo     "tuesday":   "QQQ only — QLD (bull) or QID (bear)",
-echo     "wednesday": "SPY only — SSO (bull) or SDS (bear)",
+echo     "tuesday":   "QQQ only — QLD (bull^) or QID (bear^)",
+echo     "wednesday": "SPY only — SSO (bull^) or SDS (bear^)",
 echo     "thursday":  "IWM only — UWM (bull^), TWM (bear^), or 2DTE options",
 echo     "friday":    "Full universe — all four plays if setups confirm"
 echo   },
@@ -137,13 +202,13 @@ echo   },
 echo   "a_plus_checklist": {
 echo     "minimum_score": 7,
 echo     "scoring": {
-echo       "ema_fan":       "+2 — 13/48/200 aligned and spacing out",
-echo       "body_close":    "+2 — 15min body close above PMH (calls^) or below PML (puts^)",
-echo       "zone_structure":"+2 — zone play confirmed + HH/HL or LH/LL",
-echo       "candle_pattern":"+1 — flag, wedge, or rejection candle at zone",
-echo       "ema_pullback":  "+1 — 13 EMA pullback entry on 2min",
-echo       "rvol":          "+1 — RVOL >2x on setup candle",
-echo       "vwap":          "+1 — VWAP agrees with direction"
+echo       "ema_fan":        "+2 — 13/48/200 aligned and spacing out",
+echo       "body_close":     "+2 — 15min body close above PMH or below PML",
+echo       "zone_structure": "+2 — zone play confirmed + HH/HL or LH/LL",
+echo       "candle_pattern": "+1 — flag, wedge, or rejection candle at zone",
+echo       "ema_pullback":   "+1 — 13 EMA pullback entry on 2min",
+echo       "rvol":           "+1 — RVOL >2x on setup candle",
+echo       "vwap":           "+1 — VWAP agrees with direction"
 echo     },
 echo     "size": {
 echo       "8-10": "A+ — full size",
@@ -152,17 +217,11 @@ echo       "5-6":  "B — half size or wait",
 echo       "<5":   "NO TRADE"
 echo     }
 echo   },
-echo   "ema_fan": {
-echo     "periods": [13, 48, 200],
-echo     "bullish": "All three aligned upward, spacing out, price above all",
-echo     "bearish": "All three aligned downward, spacing out, price below all",
-echo     "bunched": "EMAs compressed — chop zone, avoid"
-echo   },
+echo   "ema_fan": { "periods": [13, 48, 200] },
 echo   "risk_rules": {
 echo     "max_per_trade": 50,
 echo     "max_trades_per_day": 3,
 echo     "no_entries_after": "3:45pm ET on 0DTE",
-echo     "no_chop_zone": "No trades when price between PML and PMH",
 echo     "profit_first": "Sell the instant target is hit intraday"
 echo   },
 echo   "account": {
@@ -175,14 +234,12 @@ echo }
 echo       Written: %RULES_PATH%
 :skip_rules
 
-REM ── Write .mcp.json ───────────────────────────────────────────────────────────
+REM ── Write .mcp.json ───────────────────────────────────────────────────────
 echo.
-echo [4/4] Writing Claude Code .mcp.json...
+echo [5/5] Writing Claude Code .mcp.json...
 if not exist "%CLAUDE_DIR%" mkdir "%CLAUDE_DIR%"
-
 set "TV_ARG=%TV_PATH:\=\\%"
 set "JACKSON_ARG=%JACKSON_PATH:\=\\%"
-
 > "%CONFIG%" (
 echo {
 echo   "mcpServers": {
@@ -199,7 +256,7 @@ echo }
 )
 echo       Written: %CONFIG%
 
-REM ── Summary ───────────────────────────────────────────────────────────────────
+REM ── Done ─────────────────────────────────────────────────────────────────
 echo.
 echo =========================================
 echo   Done!
@@ -209,6 +266,5 @@ echo Next steps:
 echo   1. Launch TradingView Desktop
 echo   2. Run: %TV_DIR%\scripts\launch_tv_debug.bat
 echo   3. Restart Claude Code
-echo   4. TradingView tools will appear automatically
 echo.
 pause
