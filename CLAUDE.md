@@ -23,6 +23,23 @@ I have access to Kevin's Robinhood Agentic account (666042577).
 - Friday:     Full system sim (all scripts, no live orders)
 - Monday+:    LIVE trading (real money, both options and shares)
 
+## WEEKLY ROTATION SCHEDULE (effective July 5, 2026)
+One instrument family per day — no decision fatigue.
+
+| Day | Focus | Instruments |
+|-----|-------|-------------|
+| **Monday** | Scanner shares | $10–50 universe (explosion scanner, full RVOL checklist) |
+| **Tuesday** | QQQ | QLD (2x bull) or QID (2x bear) — fracs, direction by day type |
+| **Wednesday** | SPY | SSO (2x bull) or SDS (2x bear) — fracs, direction by day type |
+| **Thursday** | IWM | UWM (2x bull), TWM (2x bear) — shares, fracs, or 2DTE options |
+| **Friday** | Full universe | All of the above — scanner + QQQ + SPY + IWM |
+
+RULES:
+- Each day's instrument is locked — don't drift to other names
+- Bull/bear instrument selected at 9:45am after day type classification
+- Thursday IWM options apply the full Casey A+ checklist (7+/10 required)
+- Friday is full deployment — run all four plays if setups confirm
+
 ---
 
 ## CASEY'S OPTIONS SYSTEM
@@ -244,13 +261,16 @@ WULF, MARA, RKT, OPEN, NU, KMI, DAL, LUNR, RDW, JOBY,
 SOUN, BBAI, QBTS, IONQ, HIVE, RIVN, NIO, ASTS, RKLB
 
 Fractional base layer (always available regardless of capital):
-  Indexes:      QQQ, SPY, QLD (2x QQQ), SSO (2x SPY) — direction set by day type
+  Indexes:      QQQ, SPY, QLD (2x QQQ bull), SSO (2x SPY bull) — direction set by day type
+  Bear hedges:  QID (2x QQQ bear), SDS (2x SPY bear), TWM (2x IWM bear) — bear day only
+  IWM plays:    UWM (2x IWM bull), TWM (2x IWM bear) — Thursday focus instrument
   AI/Robotics:  BOTZ, ARKQ, UBOT (2x Robotics/AI)
   Semis:        SMH (VanEck), SOXX (iShares) — cleaner than SOXL, no 3x decay
   Leveraged:    NVDL (2x NVDA daily) — high risk, fractional only
   China tech:   KWEB — use when QQQ lags or China tech leads
   Rule: Pick the fractional that aligns with the day's sector leadership.
         Semis leading → SMH/SOXX. AI theme → BOTZ/ARKQ. Broad market → QLD/SSO.
+        Bear day type → swap QLD→QID, SSO→SDS, UWM→TWM.
 
 Entry criteria (all required):
 - Price $10-$50 (sweet spot for full shares at $50 position size)
