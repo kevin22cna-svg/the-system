@@ -264,12 +264,13 @@ Fractional base layer (always available regardless of capital):
   China tech:   KWEB — use when QQQ lags or China tech leads
 
 Single-Stock 2x Leveraged (bull/bear pairs — fracs, match to day's leader):
-  NVDA:   NVDL (bull) / NVDS (bear)
+  NVDA:   NVDL (bull) / NVD (bear)
   TSLA:   TSLL (bull) / TSLS (bear)
   GOOGL:  GGLL (bull) / GGLS (bear)
   AMZN:   AMZU (bull) / AMZD (bear)
   META:   METU (bull) / METD (bear)
-  AMD:    AMDL (bull) / bear unconfirmed
+  PLTR:   PLTU (bull) / PLTD (bear)
+  AMD:    AMDL (bull) / AMDD (bear)
   COIN:   CONL (bull) / bear unconfirmed
   Rule: Bull day type → buy the 2x bull of whichever Mag 10 name is leading.
         Bear day type → buy the 2x bear of whichever name is weakest.
