@@ -130,39 +130,52 @@ Structure shift = support rejects on retest → first Bear Flag = entry signal
 
 ---
 
-## TWO-TRADE CAPITAL STRUCTURE (current phase: building account)
+## TRADE PRIORITY FRAMEWORK
 
-### The Framework
-Every session deploys across two trade types — NO deep OTM lottery plays.
-Goal: grow account through consistent, low-risk frac + scanner execution.
+### The Signal Stack (run in order every session)
+1. **Casey A+ checklist** — score the index setup (0–10)
+2. **Cheddar flow** — check X for whale prints on QQQ/SPY/IWM
+3. **Day type** — classify at 9:45am (STRONGEST BULL → full size, CHOP → skip)
+4. **News/catalyst** — Step 0 catalyst check before anything else
 
-### Trade 1 — Index Fractionals (base, always available)
-- Buy fractional indexes: QQQ, SPY, QLD (2x QQQ bull), SSO (2x SPY bull)
-- Bear day: swap to QID (2x QQQ bear), SDS (2x SPY bear)
-- Direction confirmed by Casey's day type + EMA fan at 9:45am
-- **NO UWM or TWM** — those are Thursday rotation instruments only, not Trade 1
-- Low risk, always liquid, no expiry pressure
+### Trade 1 — Index Options (PRIMARY when A+ confirms)
+**This is where the month is made. Everything else is secondary.**
+- Instrument: QQQ, SPY, or IWM (rotation day sets which one)
+- Entry gate: Casey A+ score 7+/10 AND Cheddar flow confirms direction
+- Type: 2DTE ITM call (bull) or put (bear) — delta 0.50+, NOT OTM lottery
+- Size: $50 per trade
+- Exit: +50% profit target / -30% stop (2DTE targets)
+- Signal stack: STRONGEST BULL + whale call sweep + 15min body close above PMH = A++ entry
+- **NO UWM or TWM** — Thursday rotation instruments only, not Trade 1
+
+### Trade 1 Fallback — Index Fractionals (when options gate not met)
+- When Casey score hits 5–6 OR no Cheddar flow confirmation → fracs instead
+- Buy: QLD (2x QQQ bull) or SSO (2x SPY bull) per rotation day
+- Bear day: QID (2x QQQ bear) or SDS (2x SPY bear)
 - Size: ~50% of available capital
 - Exit: +5% profit target or -5% stop
+- No expiry pressure — always liquid, always available
 
 ### Trade 2 — Screener Shares ($10–50 universe)
 - Run explosion scanner, pick top scorer with RVOL >2x
 - Full share position — need clean entry + zone confirmed + HH/HL structure
 - Size: ~35–50% of remaining capital
 - Exit: +5% profit target or -5% stop, GTC sell limit placed immediately after fill
+- Run this regardless of whether Trade 1 is options or fracs
+
+### The Logic
+On a STRONGEST BULL day with Cheddar flow confirming:
+- A QQQ 2DTE call can return 200–500%+ on a $30+ index move
+- A QLD frac returns ~2x the index move (~3–5%)
+- A scanner share returns ~5%
+- **The call is the month. The frac is the consolation prize.**
+Use fracs when the options signal isn't clean. Never skip Trade 2 (scanner).
 
 ### Stage Graduation (as account grows)
-Current stage: Trade 1 = indexes (fracs) | Trade 2 = screener (shares)
-
-Next stage:
-- **Stage 1** = Indexes OR Shares OR Options (pick the best setup for the day)
-- **Stage 2** = Shares AND Options (run both simultaneously)
-
-Capital thresholds:
-- Current (<$200):   Trade 1 (index fracs) + Trade 2 (scanner shares)
-- $200–$500:         Stage 1 unlocks — indexes or shares or IWM ITM options
-- $500–$1000:        Stage 2 unlocks — shares + SPY ITM options together
-- $1000+:            Full Casey universe — SPY + QQQ options + scanner
+- Current:     Trade 1 (options or frac fallback) + Trade 2 (scanner)
+- $200–$500:   Add single-stock Mag 10 options on A+ days alongside index options
+- $500–$1000:  Full Casey universe — SPY + QQQ options + scanner simultaneously
+- $1000+:      Max size Casey — all instruments, full rotation, both trades always options
 
 ---
 
