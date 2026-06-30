@@ -346,11 +346,14 @@ WHALE / UNUSUAL OPTIONS FLOW (+2 pts) — MOST IMPORTANT:
   - $1M+ premium = institutional. $3M+ = major conviction — follow it.
   - OTM sweep at ask = directional bet (not a hedge) = highest signal
   - PRIORITY SOURCES (check in this order):
-      1. IBKR (Interactive Brokers) — real-time sweep & block data
-      2. Pineify — sweep detection + flow sentiment
-      3. OptionStrat — visualized flow, strike heatmap
-      4. Barchart — unusual options activity screener (volume/OI)
-      5. unusualwhales.com, flowalgo, finviz unusual options
+      1. X (Twitter) — search "$TICKER unusual options" or "$TICKER sweep" (use x-twitter MCP)
+         Key accounts to scan: @cheddar_flow, @unusual_whales, @tradytics, @flowAlerts
+         Search terms: "$SPY calls sweep", "$QQQ unusual flow", "whale alert $TICKER"
+      2. IBKR (Interactive Brokers) — real-time sweep & block data
+      3. Pineify — sweep detection + flow sentiment
+      4. OptionStrat — visualized flow, strike heatmap
+      5. Barchart — unusual options activity screener (volume/OI)
+      6. unusualwhales.com, flowalgo, finviz unusual options
 
 DARK POOL PRINTS (+1 pt):
   - Block trades >$1M executed off-exchange
@@ -432,6 +435,9 @@ run pre-market prep
 → Classify likely day type
 → Surface top 3 candidates with option chains ready
 → Pull WSB/social sentiment from EOD scanner if available
+→ **Search X (PM flow):** scan @cheddar_flow + "$SPY" + "$QQQ" for any AH/overnight whale prints
+   — look for large sweep alerts, unusual call/put volume on watchlist names
+   — any $1M+ premium flow from AH or PM is a directional signal for the open
 
 ### RUN THE SCAN (anytime during market hours)
 ```
@@ -495,6 +501,10 @@ run the eod scanner for tomorrow
 → Pulls news, catalysts, earnings
 → WSB social sentiment
 → Builds ranked next-day watchlist
+→ **Search X (AH flow):** scan @cheddar_flow, @unusual_whales for AH unusual options prints
+   — search "$TICKER sweep AH" or "$TICKER unusual options after hours" on top watchlist names
+   — any whale print AH = name goes to top of tomorrow's watchlist
+   — note direction (calls vs puts) and strike for pre-market context
 
 ---
 
