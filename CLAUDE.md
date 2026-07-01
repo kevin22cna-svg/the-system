@@ -131,6 +131,8 @@ Structure shift = support rejects on retest → first Bear Flag = entry signal
 ---
 
 ## TRADE PRIORITY FRAMEWORK
+Monday through Friday all run the same 3-trade structure: Trade 1 = indexes,
+Trade 2 = scanner, Trade 3 = second play (leveraged share/frac or options).
 
 ### The Signal Stack (run in order every session)
 1. **Casey A+ checklist** — score the index setup (0–10)
@@ -163,6 +165,17 @@ Structure shift = support rejects on retest → first Bear Flag = entry signal
 - Exit: +5% profit target or -5% stop, GTC sell limit placed immediately after fill
 - Run this regardless of whether Trade 1 is options or fracs
 
+### Trade 3 — Second Play (leveraged share/frac OR options — flexible)
+- Runs after Trade 1 and Trade 2 are placed/confirmed, using remaining capital
+- Choose whichever fits the day's setup:
+  - Another leveraged share/frac — Mag 10 2x bull/bear pair matching the day's leading name
+    (e.g. NVDL/NVD, TSLL/TSLS, PLTU/PLTD — see Single-Stock 2x Leveraged list)
+  - OR a second options play — single-stock mega cap A+ setup independent of the Trade 1 index
+- Size: $50 per trade, same as Trade 1/Trade 2
+- Exit: matches instrument type — options use DTE profit/stop targets, fracs/shares use +5%/-5%
+- Purpose: capture a second signal (leading Mag 10 name or a separate mega-cap A+ setup)
+  without diluting the primary index trade
+
 ### The Logic
 On a STRONGEST BULL day with Cheddar flow confirming:
 - A QQQ 2DTE call can return 200–500%+ on a $30+ index move
@@ -172,10 +185,10 @@ On a STRONGEST BULL day with Cheddar flow confirming:
 Use fracs when the options signal isn't clean. Never skip Trade 2 (scanner).
 
 ### Stage Graduation (as account grows)
-- Current:     Trade 1 (options or frac fallback) + Trade 2 (scanner)
+- Current:     Trade 1 (options or frac fallback) + Trade 2 (scanner) + Trade 3 (second share/frac or options)
 - $200–$500:   Add single-stock Mag 10 options on A+ days alongside index options
 - $500–$1000:  Full Casey universe — SPY + QQQ options + scanner simultaneously
-- $1000+:      Max size Casey — all instruments, full rotation, both trades always options
+- $1000+:      Max size Casey — all instruments, full rotation, all three trades always options
 
 ---
 
