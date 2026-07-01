@@ -163,15 +163,16 @@ Trade 2 = scanner, Trade 3 = second play (leveraged share/frac or options).
 - Exit: +5% profit target or -5% stop
 - No expiry pressure — always liquid, always available
 
-### Trade 2 — Screener Shares ($10–50 universe)
+### Trade 2 — Screener Shares ($10–50 universe) — OPTIONAL, lower priority
 - Run explosion scanner, pick top scorer with RVOL >2x
 - Full share position — need clean entry + zone confirmed + HH/HL structure
 - Size: ~35–50% of remaining capital
 - Exit: +5% profit target or -5% stop, GTC sell limit placed immediately after fill
-- Run this regardless of whether Trade 1 is options or fracs
+- Not required daily — Trade 1 (index) and Trade 3 (Mag 10 leveraged/options) are the priority.
+  Run the scanner only when there's spare capital/attention and no clean CHOP day for the indexes.
 
 ### Trade 3 — Second Play (leveraged share/frac OR options — flexible)
-- Runs after Trade 1 and Trade 2 are placed/confirmed, using remaining capital
+- Runs after Trade 1 is placed/confirmed, using remaining capital
 - Choose whichever fits the day's setup:
   - Another leveraged share/frac — Mag 10 2x bull/bear pair matching the day's leading name
     (e.g. NVDL/NVD, TSLL/TSLS, PLTU/PLTD — see Single-Stock 2x Leveraged list)
@@ -187,10 +188,11 @@ On a STRONGEST BULL day with Cheddar flow confirming:
 - A QLD frac returns ~2x the index move (~3–5%)
 - A scanner share returns ~5%
 - **The call is the month. The frac is the consolation prize.**
-Use fracs when the options signal isn't clean. Never skip Trade 2 (scanner).
+Use fracs when the options signal isn't clean. Trade 2 (scanner) is optional now — Trade 3
+(Mag 10 leveraged fallback) covers the same "second play" role with a tighter index correlation.
 
 ### Stage Graduation (as account grows)
-- Current:     Trade 1 (options or frac fallback) + Trade 2 (scanner) + Trade 3 (second share/frac or options)
+- Current:     Trade 1 (options or frac fallback) + Trade 3 (second share/frac or options) — Trade 2 (scanner) optional
 - $200–$500:   Add single-stock Mag 10 options on A+ days alongside index options
 - $500–$1000:  Full Casey universe — SPY + QQQ options + scanner simultaneously
 - $1000+:      Max size Casey — all instruments, full rotation, all three trades always options
