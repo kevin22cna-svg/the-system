@@ -144,11 +144,16 @@ Trade 2 = scanner, Trade 3 = second play (leveraged share/frac or options).
 **This is where the month is made. Everything else is secondary.**
 - Instrument: QQQ, SPY, or IWM (rotation day sets which one)
 - Entry gate: Casey A+ score 7+/10 AND Cheddar flow confirms direction
-- Type: 2DTE ITM call (bull) or put (bear) — delta 0.50+, NOT OTM lottery
+- Type: 2DTE call (bull) or put (bear) — delta 0.10 to 0.50, NOT deep OTM lottery
 - Size: $50 per trade
 - Exit: +50% profit target / -30% stop (2DTE targets)
 - Signal stack: STRONGEST BULL + whale call sweep + 15min body close above PMH = A++ entry
 - **NO UWM or TWM** — Thursday rotation instruments only, not Trade 1
+- Pre-trade scan (every ticker, every time, before sizing): pull yesterday's RTH session volume,
+  overnight volume, and premarket volume. Confirms liquidity and feeds the RVOL check.
+- Mag 10 single-stock options (secondary universe): if the delta-appropriate contract prices
+  above the $50 trade size, don't chase further OTM to fit the budget — switch to that ticker's
+  2x leveraged share/frac instead (see Single-Stock 2x Leveraged list, e.g. NVDL, TSLL, PLTU).
 
 ### Trade 1 Fallback — Index Fractionals (when options gate not met)
 - When Casey score hits 5–6 OR no Cheddar flow confirmation → fracs instead
