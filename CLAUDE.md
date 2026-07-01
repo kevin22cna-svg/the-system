@@ -510,14 +510,36 @@ start the profit monitor
 ```
 run the eod scanner for tomorrow
 ```
-→ Scans full watchlist
-→ Pulls news, catalysts, earnings
-→ WSB social sentiment
-→ Builds ranked next-day watchlist
-→ **Search X (AH flow):** scan @cheddar_flow, @unusual_whales for AH unusual options prints
-   — search "$TICKER sweep AH" or "$TICKER unusual options after hours" on top watchlist names
-   — any whale print AH = name goes to top of tomorrow's watchlist
-   — note direction (calls vs puts) and strike for pre-market context
+
+**STEP 1 — PULL INDEX DATA:**
+→ get_equity_fundamentals: SPY, QQQ, IWM, SSO, SDS, QLD, QID
+→ Record today's RTH high/low → these become tomorrow's PDH/PDL
+→ Note RVOL vs 2-week and 30-day avg for each index
+
+**STEP 2 — PULL FULL SCANNER UNIVERSE:**
+→ get_equity_fundamentals on all $10–50 names (run in batches of 10)
+→ Calculate RVOL = today volume ÷ 2-week avg volume for each
+→ Filter: price $10–50, RVOL >1x to surface, RVOL >2x = hard gate for entry
+→ Note day % move and whether 52-week high was set
+
+**STEP 3 — X / CHEDDAR FLOW AH SCAN (REQUIRED EVERY EOD):**
+→ WebSearch: "@cheddar_flow $SPY after hours" — any AH whale prints on SPY
+→ WebSearch: "@cheddar_flow $QQQ after hours" — any AH whale prints on QQQ
+→ WebSearch: "unusual options activity SPY QQQ after hours today" — confirmation
+→ WebSearch: "@cheddar_flow $TICKER" for top 3 movers from scanner universe
+→ Flag any $1M+ premium sweep — note direction (calls vs puts) and strike
+→ Any whale AH print → name moves to TOP of tomorrow's watchlist
+
+**STEP 4 — NEWS + CATALYSTS:**
+→ WebSearch: top movers + "news today" — confirm catalyst is real
+→ WebSearch: "earnings tomorrow" — flag any scanner names reporting next day
+→ WebSearch: "economic calendar tomorrow" — flag HIGH impact events (CPI/NFP/FOMC)
+
+**STEP 5 — BUILD RANKED NEXT-DAY WATCHLIST:**
+→ Rank by: Cheddar Flow whale print (top) → RVOL >2x → % move → 52-week high
+→ Output top 3 with: price range, RVOL, day move, catalyst, whale flow direction
+→ Note next rotation day instrument (Tue=QQQ, Wed=SPY, Thu=IWM, Mon/Fri=all)
+→ Set PDH/PDL levels for next day Trade 1 planning
 
 ---
 
