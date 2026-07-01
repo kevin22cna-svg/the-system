@@ -26,13 +26,13 @@ I have access to Kevin's Robinhood Agentic account (666042577).
 ## WEEKLY ROTATION SCHEDULE (effective July 5, 2026)
 One instrument family per day — no decision fatigue.
 
-| Day | Focus | Instruments |
-|-----|-------|-------------|
-| **Monday** | Full universe | All — scanner + QQQ + SPY + IWM (weekend gave us sector/name context) |
-| **Tuesday** | QQQ | QLD (2x bull) or QID (2x bear) — fracs, direction by day type |
-| **Wednesday** | SPY | SSO (2x bull) or SDS (2x bear) — fracs, direction by day type |
-| **Thursday** | IWM | UWM (2x bull), TWM (2x bear) — shares, fracs, or 2DTE options |
-| **Friday** | Full universe | All of the above — scanner + QQQ + SPY + IWM |
+| Day | Nickname | Focus | Instruments |
+|-----|----------|-------|-------------|
+| **Monday** | — | Full universe | All — scanner + QQQ + SPY + IWM (weekend gave us sector/name context) |
+| **Tuesday** | Tech Tuesday | QQQ | QLD (2x bull) or QID (2x bear) — fracs, direction by day type |
+| **Wednesday** | SPY Wednesdays | SPY | SSO (2x bull) or SDS (2x bear) — fracs, direction by day type |
+| **Thursday** | I Win Money Thursday | IWM | UWM (2x bull), TWM (2x bear) — shares, fracs, or 2DTE options |
+| **Friday** | — | Full universe | All of the above — scanner + QQQ + SPY + IWM |
 
 RULES:
 - Monday = Friday = full deployment. Weekend research (sectors, social, news) informs which names lead.
