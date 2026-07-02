@@ -41,6 +41,30 @@ RULES:
 - Thursday IWM options apply the full Casey A+ checklist (7+/10 required)
 - Friday is full deployment — run all four plays if setups confirm
 
+## MAG 10 DAILY PAIR ROTATION (Trade 3 slot)
+Same no-decision-fatigue logic as the index rotation: each day gets a locked
+pair of Mag 10 names. All 10 names get touched every week.
+
+| Day | Mag 10 Pair | 2x Bull / Bear vehicles |
+|-----|-------------|-------------------------|
+| **Monday** | AAPL + GOOGL | AAPU/AAPD · GGLL/GGLS |
+| **Tuesday** (Tech Tuesday) | MSFT + NVDA | MSFU/MSFD · NVDL/NVD |
+| **Wednesday** (SPY Wednesdays) | AVGO + META | AVGX/— · METU/METD |
+| **Thursday** (I Win Money Thursday) | PLTR + TSLA | PLTU/PLTD · TSLL/TSLS |
+| **Friday** | AMD + AMZN | AMDL/AMDD · AMZU/AMZD |
+
+MAG 10 ROTATION RULES:
+- The day's pair fills the Trade 3 slot — AFTER Trade 1 (index) is placed/passed
+- At 9:45am score BOTH names of the pair; trade the LEADER only:
+  - Bull day type → 2x bull of the stronger name (or its call if A+ 7+)
+  - Bear day type → 2x bear of the weaker name (or its put if A+ 7+)
+- Vehicle selection follows the standing rule: option if Casey 7+ AND the
+  0.10–0.50 delta contract fits the $50 budget, else the 2x leveraged frac
+- Full Casey A+ checklist applies to any Mag 10 option — no exceptions
+- No drifting to off-day names, same as the index rotation
+- Pair design: Tue = QQQ leaders on QQQ day, Thu = high-beta movers,
+  Mon/Wed/Fri = steadier mega caps spread across the week
+
 ---
 
 ## CASEY'S OPTIONS SYSTEM
@@ -319,6 +343,9 @@ Single-Stock 2x Leveraged (bull/bear pairs — fracs, match to day's leader):
   META:   METU (bull) / METD (bear)
   PLTR:   PLTU (bull) / PLTD (bear)
   AMD:    AMDL (bull) / AMDD (bear)
+  AAPL:   AAPU (bull) / AAPD (bear)          [verified on RH 7/2/26]
+  MSFT:   MSFU (bull) / MSFD (bear)          [verified on RH 7/2/26]
+  AVGO:   AVGX (bull) / bear: AVGB exists but spread is terrible — avoid
   COIN:   CONL (bull) / bear unconfirmed
   Rule: Bull day type → buy the 2x bull of whichever Mag 10 name is leading.
         Bear day type → buy the 2x bear of whichever name is weakest.
