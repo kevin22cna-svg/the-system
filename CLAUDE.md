@@ -161,8 +161,10 @@ Trade 2 = scanner, Trade 3 = second play (leveraged share/frac or options).
 ### The Signal Stack (run in order every session)
 1. **Casey A+ checklist** — score the index setup (0–10)
 2. **Cheddar flow** — check X for whale prints on QQQ/SPY/IWM
-3. **Day type** — classify at 9:45am (STRONGEST BULL → full size, CHOP → skip)
-4. **News/catalyst** — Step 0 catalyst check before anything else
+3. **Gamma walls** — chain-OI call/put walls on every instrument in play
+   (strike cap + target + confluence; see GAMMA WALL CHECK)
+4. **Day type** — classify at 9:45am (STRONGEST BULL → full size, CHOP → skip)
+5. **News/catalyst** — Step 0 catalyst check before anything else
 
 ### Trade 1 — Index Options (PRIMARY when A+ confirms)
 **This is where the month is made. Everything else is secondary.**
@@ -335,18 +337,23 @@ Fractional base layer (always available regardless of capital):
   Semis:        SMH (VanEck), SOXX (iShares) — cleaner than SOXL, no 3x decay
   China tech:   KWEB — use when QQQ lags or China tech leads
 
-Single-Stock 2x Leveraged (bull/bear pairs — fracs, match to day's leader):
-  NVDA:   NVDL (bull) / NVD (bear)
-  TSLA:   TSLL (bull) / TSLS (bear)
-  GOOGL:  GGLL (bull) / GGLS (bear)
-  AMZN:   AMZU (bull) / AMZD (bear)
-  META:   METU (bull) / METD (bear)
-  PLTR:   PLTU (bull) / PLTD (bear)
-  AMD:    AMDL (bull) / AMDD (bear)
-  AAPL:   AAPU (bull) / AAPD (bear)          [verified on RH 7/2/26]
-  MSFT:   MSFU (bull) / MSFD (bear)          [verified on RH 7/2/26]
-  AVGO:   AVGX (bull) / bear: AVGB exists but spread is terrible — avoid
-  COIN:   CONL (bull) / bear unconfirmed
+Single-Stock Leveraged — FULL MAG 10 TABLE (all verified on RH 7/2/26):
+  | Name  | Primary Bull | Primary Bear | Alternates (use if primary spread is wide) |
+  |-------|--------------|--------------|--------------------------------------------|
+  | AAPL  | AAPU         | AAPD         | AAPB (bull)                                |
+  | MSFT  | MSFU         | MSFD         | MSFL (bull)                                |
+  | NVDA  | NVDL         | NVD          | NVDU, NVDX (bull) · NVDD, NVDS (bear)      |
+  | AMZN  | AMZU         | AMZD         | AMZZ (bull)                                |
+  | GOOGL | GGLL         | GGLS         | —                                          |
+  | META  | METU         | METD         | FBL (bull)                                 |
+  | TSLA  | TSLL         | TSLS         | TSLR, TSLT (bull) · TSLQ (bear)            |
+  | AVGO  | AVL          | none on RH   | AVGX (bull) · AVGB spread too wide, avoid  |
+  | AMD   | AMDL         | AMDD         | AMUU (bull)                                |
+  | PLTR  | PLTU         | PLTD         | PTIR (bull)                                |
+  | COIN  | CONL         | unconfirmed  | COIW (wide spread, verify at open)         |
+  RULES: check the live bid/ask before every fill — if the primary's spread
+  is >0.5% of price, use the tightest alternate. AVGO bear day = skip the
+  frac (no clean vehicle) or use AVGO puts if the A+ gate passes.
   Rule: Bull day type → buy the 2x bull of whichever Mag 10 name is leading.
         Bear day type → buy the 2x bear of whichever name is weakest.
         These move ~2x the underlying — on a +5% TSLA day, TSLL does ~+10%.
@@ -376,6 +383,17 @@ OPTIONS SPECIFIC FILTERS (applied before every options trade):
 - Bid/ask spread <= $0.10 (for options under $1.00)
 - Bid/ask spread <= 5% of mark (for options over $1.00)
 Wide spreads = instant loss on entry. Reject and find a better strike.
+
+GAMMA WALL CHECK (applied before EVERY options trade — index AND Mag 10):
+- Pull the chain OI around spot (±2%, nearest expiry) and mark the walls:
+  call wall = max call OI above spot, put wall = max put OI below spot
+- CALLS: never buy a strike AT/ABOVE the call wall — the wall is the target,
+  not the ticket. Strike goes BELOW the wall; wall = T1.
+- PUTS: never buy a strike AT/BELOW the put wall — same logic inverted.
+  Strike goes ABOVE the wall; wall = T1.
+- Wall confluence with a Casey level (PDH/PMH/PDL/PML/zone) = +1 conviction,
+  same weight as whale flow
+- Spot pinned BETWEEN tight walls (<0.5% apart) = pin risk = chop = NO TRADE
 
 Only exception: penny stock tier (Tier 2/3) which uses 500K+ with RVOL >2x instead.
 For options specifically: 10M+ volume ensures the option chain has tight spreads.
@@ -514,7 +532,9 @@ run pre-market prep
    — look for large sweep alerts, unusual call/put volume on watchlist names
    — any $1M+ premium flow from AH or PM is a directional signal for the open
 → **GAMMA WALLS (poor-man's GEX — free, from Robinhood chain OI):**
-   1. Pull the option chain for the day's focus index (nearest expiry, 0-2DTE),
+   Run on ALL of today's instruments: the focus index (or indexes on Mon/Fri)
+   AND both names of the day's Mag 10 pair.
+   1. Pull the option chain for each (nearest expiry, 0-2DTE),
       strikes within ~±2% of spot, calls AND puts (get_option_instruments)
    2. Pull open interest for those strikes (get_option_quotes, batches of ≤20)
    3. Mark three levels:
@@ -613,10 +633,18 @@ run the eod scanner for tomorrow
 → WebSearch: "earnings tomorrow" — flag any scanner names reporting next day
 → WebSearch: "economic calendar tomorrow" — flag HIGH impact events (CPI/NFP/FOMC)
 
-**STEP 5 — BUILD RANKED NEXT-DAY WATCHLIST:**
+**STEP 5 — GAMMA WALLS FOR TOMORROW:**
+→ Pull chain OI for tomorrow's focus index AND tomorrow's Mag 10 pair
+→ Mark call wall / put wall / OI flip for each (next-day expiry)
+→ Note wall confluence with tomorrow's PDH/PDL — pre-marked strong zones
+→ These walls seed the 9:20am prep (refresh them in the morning; OI updates overnight)
+
+**STEP 6 — BUILD RANKED NEXT-DAY WATCHLIST:**
 → Rank by: Cheddar Flow whale print (top) → RVOL >2x → % move → 52-week high
 → Output top 3 with: price range, RVOL, day move, catalyst, whale flow direction
 → Note next rotation day instrument (Tue=QQQ, Wed=SPY, Thu=IWM, Mon/Fri=all)
+→ Note tomorrow's Mag 10 pair (Mon AAPL+GOOGL, Tue MSFT+NVDA, Wed AVGO+META,
+  Thu PLTR+TSLA, Fri AMD+AMZN)
 → Set PDH/PDL levels for next day Trade 1 planning
 
 ---
