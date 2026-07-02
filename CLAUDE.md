@@ -259,6 +259,21 @@ EXIT RULES (PROFIT FIRST):
 4. Scale out HEAVY at next supply/demand zone
 5. Trail runners with 13 EMA
 
+T1 LOCK RULE (adopted from Vol Desk / GEX system):
+- T1 = first target (profit % target or next zone, whichever hits first)
+- At T1 there are exactly two choices: SELL AND BANK, or LOCK STOP AT ENTRY
+  (breakeven) and ride toward T2 (the next zone)
+- NEVER hold past T1 with the original stop — riding for T2 unprotected is
+  how winners turn into losers. Lock T1 first or don't ride at all.
+
+TIME STOP (kills dead capital):
+- Intraday (0-1DTE): if the trade hasn't moved 50% of the way to target by
+  12:00pm ET, exit — the move window closed, it's a chop day (matches the
+  index timing rule)
+- Swing (2DTE+/shares): position not 50% toward target by day 3 → exit and
+  revisit. A position sitting still isn't going to target — free the capital.
+- Stalling: 3 consecutive sessions with no progress → exit regardless.
+
 NEVER enter after 3:45pm ET on 0DTE.
 Want price BELOW 200 EMA before entering puts.
 Use review_option_order before place_option_order.
@@ -471,6 +486,22 @@ run pre-market prep
 → **Search X (PM flow):** scan @cheddar_flow + "$SPY" + "$QQQ" for any AH/overnight whale prints
    — look for large sweep alerts, unusual call/put volume on watchlist names
    — any $1M+ premium flow from AH or PM is a directional signal for the open
+→ **GAMMA WALLS (poor-man's GEX — free, from Robinhood chain OI):**
+   1. Pull the option chain for the day's focus index (nearest expiry, 0-2DTE),
+      strikes within ~±2% of spot, calls AND puts (get_option_instruments)
+   2. Pull open interest for those strikes (get_option_quotes, batches of ≤20)
+   3. Mark three levels:
+      - CALL WALL  = strike with max call OI above spot → upside magnet/pin,
+        acts like +GEX. Price accelerates toward it, stalls AT it. Natural T1/T2.
+      - PUT WALL   = strike with max put OI below spot → structural floor,
+        acts like COTMP. Dip-buy zone when it confluences with PDL/PML.
+      - OI FLIP    = strike zone where dominance flips calls↔puts → chop pivot
+   4. CONFLUENCE RULE: a Casey level (PDH/PMH/zone) that lines up with the
+      call wall or put wall is a STRONGER level (+1 conviction, like whale flow)
+   5. TARGET RULE: don't buy calls with a strike AT/ABOVE the call wall —
+      the wall is where the move pins/stalls. Target the wall, don't pass it.
+   NOTE: This is an OI approximation of dealer gamma — good on SPY/QQQ where
+   options volume is massive, weaker on thin names. It's confluence, not gospel.
 
 ### RUN THE SCAN (anytime during market hours)
 ```
