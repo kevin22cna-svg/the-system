@@ -54,3 +54,13 @@
 4. Entry per A+ gate; T1 lock + time stops govern every position
 5. Weekend: decide "Big 3 all week" / "SPY+QQQ only" question for next week
    (rotation schedule goes live Mon July 6)
+
+## 📌 PARKED FOR NEXT WEEK
+- **Premarket Explosion Scan (9:20 step)** — scan the quality universe
+  (29 scanner names + Mag 10 + indexes) for conditions that precede moves:
+  overnight volume, premarket RVOL, gap %, distance to 52wk high, and
+  gamma-wall position (below call wall = upside magnet, losing put wall =
+  downside room). Output: top 3 coiled UP + top 3 coiled DOWN each morning.
+  Feeds Trade 2/Trade 3 candidates; A+ gate still decides entries.
+  QUALITY NAMES ONLY — no sub-$1 / low-float / halt-risk lottery tickets
+  (inspired by the "Stonk Emporium" graphic, minus the pump names).
