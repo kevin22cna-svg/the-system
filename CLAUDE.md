@@ -271,7 +271,19 @@ SCORE <5   = NO TRADE
 
 ---
 
-## OPTIONS STRATEGY — CASEY'S FULL UNIVERSE
+## OPTIONS UNIVERSE — THIS WEEK: THE SIMPLE 5 (week of July 6, 2026)
+Options trades this week are LIMITED to five names only:
+  **SPY · QQQ · IWM · NVDA · AAPL**
+- The 3 indexes + the 2 highest-liquidity / tightest-spread / heaviest-flow
+  single stocks. Penny-wide options and massive whale flow on all five.
+- Any single-stock OPTION this week must be NVDA or AAPL — no other Mag 10
+  names get option trades until this override is lifted.
+- LEVERAGED FRACS are unaffected: the full Mag 10 2x rotation (Trade 3) still
+  runs for shares/fracs (NVDL, TSLL, AAPU, etc.). This limit is OPTIONS ONLY.
+- On rotation days whose Mag 10 pair isn't NVDA/AAPL, the single-stock play
+  is a leveraged frac (or skip) — don't force an option outside the Simple 5.
+
+## OPTIONS STRATEGY — CASEY'S FULL UNIVERSE (default; narrowed to Simple 5 this week)
 Primary instruments (indexes): SPY, QQQ, IWM
 Secondary instruments (mega caps): AAPL, MSFT, NVDA, AMZN, GOOGL, META, TSLA, AVGO, AMD, PLTR
 
