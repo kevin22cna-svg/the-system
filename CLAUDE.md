@@ -158,20 +158,40 @@ Structure shift = support rejects on retest → first Bear Flag = entry signal
 Monday through Friday all run the same 3-trade structure: Trade 1 = indexes,
 Trade 2 = scanner, Trade 3 = second play (leveraged share/frac or options).
 
+### THE TRIGGER vs THE REFINERS (read this first)
+Casey — the trader this system is named after, +70% June — pulls the trigger
+on a SMALL core, not the full checklist. His actual money-making read:
+  1. Reaction at the 4 levels (PDH/PDL/PMH/PML)
+  2. EMA fan trending (13>48>200 bull, inverse bear)
+  3. Bull/bear FLAG at the level
+  4. 15-min BODY close through the level (PMH break = calls)
+  5. Enter on the 2min 13 EMA retest/pullback
+  6. Stop under the level · target the next zone
+That core = +2 fan / +2 15m close / +1 flag / +1 13EMA entry = 6 points on the
+A+ card. One more confluence item (VWAP, structure, or volume) = 7 = GO.
+
+**THE 7+ TECHNICAL READ IS THE GREEN LIGHT. Everything else is a REFINER:**
+- Gamma walls, Cheddar flow, VWAP, RVOL, CVD → they SIZE the trade, pick the
+  STRIKE, and set the TARGET. They do NOT block a clean 7+ Casey setup.
+- The ONLY flow-based veto: a whale sweep OPPOSITE your direction → skip or half.
+- No Cheddar/gamma data available (e.g. cloud session) → trade the technicals,
+  exactly like Casey does. Absence of confluence is not a blocker.
+
 ### The Signal Stack (run in order every session)
-1. **Casey A+ checklist** — score the index setup (0–10)
-2. **Cheddar flow** — check X for whale prints on QQQ/SPY/IWM
-3. **Gamma walls** — chain-OI call/put walls on every instrument in play
-   (strike cap + target + confluence; see GAMMA WALL CHECK)
-4. **Day type** — classify at 9:45am (STRONGEST BULL → full size, CHOP → skip)
-5. **News/catalyst** — Step 0 catalyst check before anything else
+1. **Casey A+ checklist** — score the setup (0–10). THIS IS THE TRIGGER (7+).
+2. **Day type** — classify at 9:45am (STRONGEST BULL → full size, CHOP → skip)
+3. **News/catalyst** — Step 0 catalyst check before anything else
+-- below are REFINERS, not gates --
+4. **Cheddar flow** — whale prints: confirm=boost, opposite=veto, none=ignore
+5. **Gamma walls** — chain-OI walls: strike cap + target + confluence (+1)
 
 ### Trade 1 — Index Options (PRIMARY when A+ confirms)
 **This is where the month is made. Everything else is secondary.**
 - Instrument: QQQ, SPY, or IWM (rotation day sets which one)
-- Entry gate: Casey A+ score 7+/10 AND Cheddar flow confirms direction
+- Entry gate: **Casey A+ score 7+/10.** That alone is the green light.
+  Cheddar/gamma are refiners — confirm boosts size, opposite vetoes, none = trade it.
 - Type: 2DTE call (bull) or put (bear) — delta 0.10 to 0.50, NOT deep OTM lottery
-- Size: $50 per trade
+- Size: $50 per trade (see WHALE-INFORMED SIZING for confirm/opposite adjustments)
 - Exit: +50% profit target / -30% stop (2DTE targets)
 - Signal stack: STRONGEST BULL + whale call sweep + 15min body close above PMH = A++ entry
 - **NO UWM or TWM** — Thursday rotation instruments only, not Trade 1
@@ -393,7 +413,10 @@ GAMMA WALL CHECK (applied before EVERY options trade — index AND Mag 10):
   Strike goes ABOVE the wall; wall = T1.
 - Wall confluence with a Casey level (PDH/PMH/PDL/PML/zone) = +1 conviction,
   same weight as whale flow
-- Spot pinned BETWEEN tight walls (<0.5% apart) = pin risk = chop = NO TRADE
+- Spot pinned BETWEEN tight walls (<0.5% apart) = pin risk — DOWNSIZE / prefer
+  the frac over the option; only a hard skip if the A+ read is also weak (<7).
+  (Gamma is a refiner: it caps strikes and flags pin risk — it does not
+  override a clean 7+ Casey trigger.)
 
 Only exception: penny stock tier (Tier 2/3) which uses 500K+ with RVOL >2x instead.
 For options specifically: 10M+ volume ensures the option chain has tight spreads.
