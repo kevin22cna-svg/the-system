@@ -1,52 +1,63 @@
-# SESSION HANDOFF — ready for Monday July 6, 2026
-# FULL DEPLOYMENT DAY — read this at "good morning let's get started"
+# SESSION HANDOFF — Tuesday July 7, 2026 (TECH TUESDAY)
+# Read at "good morning let's get started"
 
-## ⏰ MONDAY MORNING FACTS
-- First session of the week (Fri July 3 was the holiday; new 4.5-day week... full week).
-- Prior trading day = Thursday July 2 → pull Thu RTH high/low at 9:20 for PDH/PDL.
-- Rotation schedule now LIVE (effective July 6).
+## ⚙️ MAY RUN MOBILE TODAY
+Kevin may run from phone (no PC-Claude / no TradingView-CDP / no X-MCP).
+- The cloud session pulls ALL data via Robinhood + web (levels, quotes, volume,
+  gamma walls, catalyst) — no pasting needed.
+- Chart confirmation = Kevin drops a screenshot; most of the A+ card scores from
+  Robinhood data alone. Cheddar/X flow is a REFINER (not a gate) — a clean 7+
+  Casey read trades without it.
+- Execution: place in AGENT-007 (••••2577, agentic) with review_option_order
+  first. Wiley Beans (••••7792) is NOT agentic — Kevin executes those manually.
 
-## 🎯 TODAY'S PLAN (Monday = full deployment)
-- **OPTIONS UNIVERSE TODAY: indexes + AAPL only** (SPY, QQQ, IWM, AAPL).
-  This is tighter than the week's Simple 5 — NVDA sits out today by choice.
-- **Trade 1 (index):** best of SPY/QQQ/IWM by day type + A+ score at 9:45.
-  Options if Casey 7+ (the trigger); else the 2x frac (SSO/QLD/UWM or bear).
-- **Trade 3 (Mag 10 pair): AAPL + GOOGL** — score both at 9:45, trade leader.
-  AAPL can be an OPTION (it's in today's universe); GOOGL is frac-only (GGLL/GGLS).
-- **Trade 2 (scanner):** optional.
+## 📋 MONDAY JULY 6 RECAP
+- **Wiley Beans (••••7792): 6 round-trip QQQ call scalps, net ≈ −$9, all closed.**
+  Churned deep-OTM 0DTE calls (736c/737c/747c/753c, 0.06–0.10 delta) betting on a
+  QQQ break of the 725 call wall that never came. The gamma wall (725) pinned
+  price exactly as flagged. Classic death-by-churn — 6 flips vs one clean trade.
+- AGENT-007 stayed flat Monday.
+- LESSON: monitor the POSITION, not the contract (the 736c monitor tracked a
+  contract Kevin had already rotated out of). And: ONE 7+ trade, not six lottos.
 
-## THIS WEEK'S STANDING RULE — SIMPLE 5 (options only)
-Options limited to **SPY · QQQ · IWM · NVDA · AAPL** all week. Single-stock
-options must be NVDA or AAPL. All Mag 10 leveraged FRACS still run normally
-(options-only limit). Today further narrows to indexes + AAPL.
+## 📊 TUESDAY PREMARKET (early ~6am read — refresh at 9:20)
+| | Premarket | vs Mon close |
+|---|---|---|
+| SPY | 750.30 | −0.13% flat |
+| **QQQ** | 715.87 | **−0.96% — soft, tech heavy** |
+| IWM | 299.35 | +0.15% |
+| **MSFT** | 392.48 | **+1.48% — pair LEADER** |
+| NVDA | 194.12 | −0.73% — pair laggard |
+| AAPL | 314.41 | +0.56% — strong, near 52wk high 317.40 |
 
-## ✅ SYSTEM RULES LIVE IN CLAUDE.md
-1. **THE TRIGGER = Casey A+ 7+/10** (levels + EMA fan + flag + 15m body close +
-   13 EMA retest entry). That alone is the green light.
-2. **REFINERS (never block a 7+):** Cheddar flow, gamma walls, VWAP, RVOL, CVD.
-   Confirm = boost/full size · opposite whale = the only veto (skip/half) ·
-   no data (e.g. this cloud session) = trade the technicals like Casey.
-3. Delta 0.10–0.50 · no deep OTM. Mag 10 option too pricey → its 2x frac.
-4. Volume scan before every trade: yesterday RTH + overnight + premarket.
-5. T1 LOCK: at first target bank it OR stop to breakeven and ride. Never past T1 raw.
-6. TIME STOPS: not 50%-to-target by noon (intraday) / day 3 (swing) / 3 stalls → out.
-7. GAMMA WALLS on all instruments at 9:20 (index + AAPL today): calls below the
-   call wall (wall=T1), puts above put wall; Casey-level confluence = +1.
-8. Mag 10 daily pairs: Mon AAPL+GOOGL · Tue MSFT+NVDA · Wed AVGO+META ·
-   Thu PLTR+TSLA · Fri AMD+AMZN. Full verified leveraged table in CLAUDE.md.
+## 🎯 TODAY'S PLAN (Tech Tuesday = QQQ + MSFT/NVDA pair)
+- **Trade 1 (index): QQQ** — soft premarket, so respect a chop/bear lean; wait
+  for 9:45 day type. Options if Casey 7+, else QLD (bull) / QID (bear) frac.
+- **Trade 3 (Mag 10 pair): MSFT + NVDA** — score both at 9:45, trade the leader.
+  ⚠️ **MSFT is NOT in this week's Simple 5** → MSFT plays are FRAC ONLY (MSFU bull
+  / MSFD bear). NVDA IS optionable (in Simple 5) but is the laggard.
+- **Options universe this week = Simple 5: SPY · QQQ · IWM · NVDA · AAPL.**
+- FOMC MINUTES = WEDNESDAY (tomorrow), not today → Tuesday is a cleaner window,
+  but still run Step 0 at 9:20.
 
 ## 🌅 MORNING SEQUENCE
-1. Step 0 catalyst check (econ calendar + Fed speakers)
-2. 9:20 prep: levels (PDH/PDL/PMH/PML) for SPY/QQQ/IWM + AAPL, volume scan,
-   gamma walls on each, X/Cheddar premarket flow (PC side)
-3. 9:45: day type + scores → pick the index Trade 1 + the AAPL/GOOGL leader
-4. Entry on 7+ trigger; T1 lock + time stops govern every position
+1. Step 0 catalyst check (econ calendar + Fed speakers). FOMC minutes are Wed.
+2. 9:20 prep: levels (PDH/PDL/PMH/PML) for QQQ + MSFT + NVDA, volume scan
+   (yesterday RTH + overnight + premarket), gamma walls on each, X/Cheddar (PC).
+3. 9:45: day type + score the pair → pick leader. QQQ soft = don't force calls.
+4. ONE clean 7+ entry, delta 0.10–0.50. T1 lock + time stops govern it.
 
-## 📌 PARKED FOR NEXT WEEK
-- Premarket Explosion Scan (quality-universe pre-move scanner; NO lottery names)
-- Revisit whether Simple 5 stays or widens
+## ✅ ACTIVE RULES (all live in CLAUDE.md)
+- TRIGGER = Casey A+ 7+/10 (levels+fan+flag+15m close+13EMA entry). Gamma/Cheddar/
+  VWAP/RVOL = REFINERS (confirm=boost, opposite=veto, none=trade technicals).
+- Delta 0.10–0.50, no deep OTM. Mag 10 option too pricey → its 2x frac.
+- T1 LOCK: at first target bank OR stop-to-breakeven and ride. Never past T1 raw.
+- TIME STOPS: not 50%-to-target by noon / day 3 / 3 stalls → out.
+- GAMMA WALLS on all instruments: calls below call wall (wall=T1), puts above put
+  wall; Casey-level confluence = +1.
+- Mag 10 daily pairs: Mon AAPL+GOOGL · Tue MSFT+NVDA · Wed AVGO+META ·
+  Thu PLTR+TSLA · Fri AMD+AMZN.
 
-## 📊 CONTEXT (from Wed July 1)
-- IWM hit 52wk high $302.72; small caps leading. SPY reversed an ISM-beat day.
-- Semis had pulled back hard (MU/AMD) then were recovering.
-- Realized +$4 Wed (SPY $754c scalp). Account BP small — size trades to fit.
+## 📌 PARKED
+- Premarket Explosion Scan (quality-universe pre-move scanner; NO lottery names).
+- Simple 5 stays this week; revisit next week.
