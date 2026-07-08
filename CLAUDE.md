@@ -209,13 +209,13 @@ A+ card. One more confluence item (VWAP, structure, or volume) = 7 = GO.
 - Exit: +5% profit target or -5% stop
 - No expiry pressure — always liquid, always available
 
-### Trade 2 — Screener Shares ($10–50 universe) — OPTIONAL, lower priority
-- Run explosion scanner, pick top scorer with RVOL >2x
-- Full share position — need clean entry + zone confirmed + HH/HL structure
-- Size: ~35–50% of remaining capital
-- Exit: +5% profit target or -5% stop, GTC sell limit placed immediately after fill
-- Not required daily — Trade 1 (index) and Trade 3 (Mag 10 leveraged/options) are the priority.
-  Run the scanner only when there's spare capital/attention and no clean CHOP day for the indexes.
+### Trade 2 — RETIRED (was $10–50 screener shares)
+- The $10–50 explosion scanner is RETIRED (effective July 7). It was the weakest
+  performer and the source of the worst losses (out-of-universe drift, halts).
+- The shares side is now the 3 LEVERAGED INDEX PAIRS only (see SHARES STRATEGY):
+  SSO/SDS (SPY), QLD/QID (QQQ), UWM/TWM (IWM) — direction by day type.
+- Structure is now Trade 1 (index) + Trade 3 (Mag 10). On full-deployment days
+  (Mon/Fri) a second index pair can fill the Trade 2 slot; otherwise skip it.
 
 ### Trade 3 — Second Play (leveraged share/frac OR options — flexible)
 - Runs after Trade 1 is placed/confirmed, using remaining capital
@@ -338,36 +338,36 @@ Use review_option_order before place_option_order.
 
 ---
 
-## SHARES STRATEGY ($10-50 universe)
-Position size: $50 per trade
+## SHARES STRATEGY — 3 LEVERAGED INDEX PAIRS (simplified July 7, 2026)
+Position size: $50 per trade (or ~50% of available capital for the frac)
 Profit target: +5% (sell immediately when hit intraday)
 Stop loss: -5%
 Max trades per day: 3
 
-PHILOSOPHY: We buy shares of RISING, QUALITY names — real companies with real businesses
-that are trending up. Not penny pumps, not lottery plays. Fractional on the big indexes
-and leveraged ETFs for the base; full shares on scanner names that are showing momentum.
+THE WHOLE SHARES SIDE IS NOW THREE 2x INDEX PAIRS — one per index. The trade IS
+the index; the 2x ETF is the vehicle; DAY TYPE picks the direction. No name-picking.
 
-TARGET: Stocks already in an UPTREND (HH/HL over multiple days) that are continuing
-their move today on volume. NU going +5% on volume is the model — catch the continuation,
-take +5%, move on.
+| Index | 2x Bull | 2x Bear | Rotation day |
+|-------|---------|---------|--------------|
+| S&P 500 (SPY) | **SSO** | **SDS** | SPY Wednesdays |
+| Nasdaq (QQQ)  | **QLD** | **QID** | Tech Tuesday |
+| Russell (IWM) | **UWM** | **TWM** | I Win Money Thursday |
 
-NOT THIS: Bounce plays off 52-week lows, short squeezes, or reversal plays are a different
-category — they may work but they are NOT the shares strategy. We need the trend already
-established BEFORE entry, not hoping it reverses.
+RULES:
+- Pick the pair by rotation day (Mon/Fri = any/all). Pick the direction by day type
+  at 9:45 (bull → 2x bull, bear → 2x bear). Only trade with the trend, never fade.
+- +5% profit / -5% stop, GTC sell limit placed immediately after fill.
+- No overnight on the bear side (SDS/QID/TWM) unless conviction is high.
+- These are the Trade 1 FRAC FALLBACK vehicle AND the standalone shares play.
 
-Scanner universe (quality names, $10-50):
-SPCX, FCEL, CRWV, HIMS, SOFI, CIFR, AAL, CCL, CLSK, RIOT,
-WULF, MARA, RKT, OPEN, NU, KMI, DAL, LUNR, RDW, JOBY,
-SOUN, BBAI, QBTS, IONQ, HIVE, RIVN, NIO, ASTS, RKLB
+WHY THIS (vs the old $10–50 scanner, now RETIRED):
+- Deepest liquidity, penny-tight spreads, no expiry, no single-stock earnings/gap/
+  halt risk. Pure day-type expression — you cannot get drifted into a bad name.
+- The scanner was the weakest performer and caused the worst losses (out-of-universe
+  drift). Retired effective July 7.
 
-Fractional base layer (always available regardless of capital):
-  Indexes:      QQQ, SPY, QLD (2x QQQ bull), SSO (2x SPY bull) — direction set by day type
-  Bear hedges:  QID (2x QQQ bear), SDS (2x SPY bear) — bear day only
-  IWM plays:    UWM (2x IWM bull), TWM (2x IWM bear) — Thursday focus instrument only
-  AI/Robotics:  BOTZ, ARKQ, UBOT (2x Robotics/AI)
-  Semis:        SMH (VanEck), SOXX (iShares) — cleaner than SOXL, no 3x decay
-  China tech:   KWEB — use when QQQ lags or China tech leads
+Optional support fracs (only if an index clearly leads its sector — not required):
+  Semis: SMH / SOXX (cleaner than SOXL, no 3x decay) · China tech: KWEB when QQQ lags
 
 Single-Stock Leveraged — FULL MAG 10 TABLE (all verified on RH 7/2/26):
   | Name  | Primary Bull | Primary Bear | Alternates (use if primary spread is wide) |
@@ -391,13 +391,13 @@ Single-Stock Leveraged — FULL MAG 10 TABLE (all verified on RH 7/2/26):
         These move ~2x the underlying — on a +5% TSLA day, TSLL does ~+10%.
         Fractional only — no hold overnight on bear side unless conviction is high.
 
-Entry criteria (all required):
-- Price $10-$50 (sweet spot for full shares at $50 position size)
-- UPTREND confirmed: stock is making HH/HL over the past 3-5 days minimum
-- RVOL >2x on setup candle (confirmed by both fundamentals + intraday historicals)
-- Up 2%+ on the day minimum
-- Clean HH/HL price structure on the intraday chart — continuation, not reversal
-- Volume >500K daily average (quality names only — no low-float pumps)
+Entry criteria for the index pairs (day-type driven):
+- Day type classified at 9:45 → bull day buys the 2x bull, bear day the 2x bear
+- The index must have BROKEN a level with conviction (PMH/PDH bull, PML/PDL bear) —
+  same Casey read as options, just expressed in the 2x ETF instead of a contract
+- Enter on the 2min 13 EMA pullback in trend direction (Casey entry trigger)
+- +5% target / -5% stop, GTC sell limit right after fill
+- CHOP day (price between PML/PMH, no break) → NO trade, all three pairs sit out
 
 ---
 
@@ -649,11 +649,11 @@ run the eod scanner for tomorrow
 → Record today's RTH high/low → these become tomorrow's PDH/PDL
 → Note RVOL vs 2-week and 30-day avg for each index
 
-**STEP 2 — PULL FULL SCANNER UNIVERSE:**
-→ get_equity_fundamentals on all $10–50 names (run in batches of 10)
+**STEP 2 — PULL THE PAIRS + TOMORROW'S MAG 10 PAIR:**
+→ get_equity_fundamentals on the 3 index-pair underlyings (SPY/QQQ/IWM) + tomorrow's
+  Mag 10 pair names — RVOL and % move for direction context ($10–50 scanner RETIRED)
 → Calculate RVOL = today volume ÷ 2-week avg volume for each
-→ Filter: price $10–50, RVOL >1x to surface, RVOL >2x = hard gate for entry
-→ Note day % move and whether 52-week high was set
+→ Note which index/name led vs lagged today → seeds tomorrow's leader read
 
 **STEP 3 — X / CHEDDAR FLOW AH SCAN (REQUIRED EVERY EOD):**
 → WebSearch: "@cheddar_flow $SPY after hours" — any AH whale prints on SPY
