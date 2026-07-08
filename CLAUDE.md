@@ -639,6 +639,36 @@ start the profit monitor
 → Auto-sells at profit target (PROFIT FIRST)
 → Alerts on stop loss
 
+### TRADINGVIEW CHART MONITOR — PC SESSIONS (standing order)
+When Kevin is at the PC and TradingView is connected (Chrome CDP / TradingView
+MCP), Claude Code runs a CONTINUOUS chart-watch loop — no need to be asked:
+
+WATCHLIST (check in this order, rotate through the charts):
+  1. The day's focus index (rotation day) — SPY Wed / QQQ Tue / IWM Thu / all Mon+Fri
+  2. Both names of the day's Mag 10 pair
+  3. Any OPEN position's underlying (highest priority — always first)
+
+CADENCE:
+  - 9:30–12:00 ET (move window): read the charts EVERY 2 MINUTES
+  - 12:00–3:45 ET: every 5–10 minutes (chop hours; tighten again on a live position)
+  - Read the Wiley Strat indicator on each chart: score/10, day type, direction,
+    fan spread, level lines, ORB, breakout stars, A+ triangles
+
+ALERT KEVIN IMMEDIATELY (interrupt, don't wait) when:
+  - A+ triangle fires (score ≥7 + 13 EMA pullback trigger)
+  - 15m BODY close through a major level (PDH/PMH/PDL/PML) — the Casey +2
+  - ORB break, or an ORB/level retest holding at the 13 EMA (the entry)
+  - Score crosses the 7 threshold either direction on the focus index
+  - Breakout star: hi-vol (green) = conviction; lo-vol (red) at a FRESH major
+    level break = trap warning
+  - Open position: T1 tag (lock or bank per T1 LOCK RULE), stop level hit,
+    or 13 EMA trail break on a runner
+  - Structure shift (HH/HL → LH/LL or reverse) on the focus index
+
+OTHERWISE STAY SILENT — no play-by-play narration between triggers.
+NOTE: the cloud/mobile session covers levels + gamma + quotes via Robinhood when
+the PC is off; this chart loop is the PC session's job, not the cloud's.
+
 ### 4:15pm — END OF DAY
 ```
 run the eod scanner for tomorrow
