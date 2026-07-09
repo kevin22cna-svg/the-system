@@ -23,7 +23,30 @@ I have access to Kevin's Robinhood Agentic account (666042577).
 - Friday:     Full system sim (all scripts, no live orders)
 - Monday+:    LIVE trading (real money, both options and shares)
 
-## WEEKLY ROTATION SCHEDULE (effective July 5, 2026)
+## ⭐ SPY + QQQ FOCUS (effective July 10, 2026 — SUPERSEDES the daily rotation while active)
+The trading universe is TWO names: **SPY and QQQ**. Both, every day, all day.
+
+- **Vehicles (both allowed, pick per setup):**
+  - OPTIONS — SPY/QQQ, 2DTE default, delta 0.10–0.50, Casey 7+ gate, gamma walls first
+  - 2x LEVERAGED SHARES — SSO/SDS (SPY) and QLD/QID (QQQ), executed in the
+    AGENTIC account (666042577), +5%/−5%, GTC sell right after fill
+- **THE 10AM RULE (Kevin's read):** SPY and QQQ pop AFTER 10:00am — the 9:30–10:00
+  open is noise. Levels and day type still get marked 9:20–9:45, but the entry
+  window is **10:00am → 3:45pm. We trade ALL DAY.**
+- **Noon is a REGIME check, not a shutdown:** no level break by 12pm = chop day
+  (skip or half size). But a trend that's RUNNING keeps giving entries all
+  afternoon (July 9: SPY stair-stepped 750→752 into the close). Manage and
+  re-enter on 13 EMA pullbacks as long as structure holds.
+- **All day ≠ all trades.** Max 3 trades/day stands. The week's data: every hold
+  under 10 minutes lost, every hold over an hour won. The window is open all
+  day so we can WAIT all day — not flip all day.
+- **PAUSED while this focus is active:** the Tue/Wed/Thu day rotation, IWM/UWM/TWM,
+  and the Mag 10 daily pair rotation. No single-name drift. NVDA/AAPL options
+  stay available per the Simple 5 only if an A+ screams — SPY/QQQ come first.
+- Everything else unchanged: Casey 7+ trigger, gamma walls before every option,
+  $50/trade, T1 lock, time stops, no new 0DTE after 3:45pm.
+
+## WEEKLY ROTATION SCHEDULE (effective July 5, 2026 — PAUSED by the SPY + QQQ FOCUS above)
 One instrument family per day — no decision fatigue.
 
 | Day | Nickname | Focus | Instruments |
@@ -41,7 +64,7 @@ RULES:
 - Thursday IWM options apply the full Casey A+ checklist (7+/10 required)
 - Friday is full deployment — run all four plays if setups confirm
 
-## MAG 10 DAILY PAIR ROTATION (Trade 3 slot)
+## MAG 10 DAILY PAIR ROTATION (Trade 3 slot — PAUSED by the SPY + QQQ FOCUS above)
 Same no-decision-fatigue logic as the index rotation: each day gets a locked
 pair of Mag 10 names. All 10 names get touched every week.
 
