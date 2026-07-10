@@ -2,8 +2,12 @@
 # ⭐ NEW REGIME: SPY + QQQ ONLY, ALL DAY — read at "good morning let's get started"
 
 ## 🎯 THE NEW FOCUS (Kevin's call, Thu evening — now in CLAUDE.md)
-Two names: **SPY and QQQ**. Both, every day, all day. Day rotation + Mag 10
-pairs are PAUSED. No IWM, no single-name drift.
+Two names: **SPY and QQQ** are the CORE. Both, every day, all day. Day rotation
++ Mag 10 pairs are PAUSED.
+**THE BENCH — only if BOTH cores are chop at the noon check (no level break, no
+7+):** NVDA → AAPL → IWM → AAL, same gates, half size ($25) unless 8+.
+AAL: needs 7+ AND RVOL >2x, no 2x ETF (options/shares only), NO trades earnings
+week (~Jul 23–24). Bench never preempts the core.
 - Vehicles: SPY/QQQ options (2DTE, delta 0.10–0.50, Casey 7+) AND the 2x pairs
   **SSO/SDS · QLD/QID — leveraged shares run in the AGENTIC account (••••2577)**
 - **10AM RULE:** the pop comes AFTER 10:00am. Mark levels 9:20–9:45 as always,

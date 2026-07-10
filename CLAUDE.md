@@ -40,9 +40,22 @@ The trading universe is TWO names: **SPY and QQQ**. Both, every day, all day.
 - **All day ≠ all trades.** Max 3 trades/day stands. The week's data: every hold
   under 10 minutes lost, every hold over an hour won. The window is open all
   day so we can WAIT all day — not flip all day.
-- **PAUSED while this focus is active:** the Tue/Wed/Thu day rotation, IWM/UWM/TWM,
-  and the Mag 10 daily pair rotation. No single-name drift. NVDA/AAPL options
-  stay available per the Simple 5 only if an A+ screams — SPY/QQQ come first.
+- **THE BENCH (only when BOTH cores fail):** NVDA → AAPL → IWM → AAL.
+  "Fail" = by the NOON regime check neither SPY nor QQQ has broken a level with
+  conviction AND neither has scored 7+ — both are chop. Only THEN scan the bench,
+  in that order, applying the exact same gates (4 levels, Casey 7+, gamma walls,
+  volume filters). A bench trade is a B-slot trade: half size ($25) unless it
+  scores 8+.
+  - Vehicles: NVDA → options or NVDL/NVD · AAPL → options or AAPU/AAPD ·
+    IWM → options or UWM/TWM · AAL → options or plain shares (no 2x ETF exists)
+  - AAL extra rules: it does NOT respect Casey levels like the indexes/mega caps —
+    require the full 7+ plus RVOL >2x, no exceptions. NO AAL trades earnings week
+    (reports ~July 23–24). Thin whale-flow data = no flow refiner, technicals only.
+  - The bench NEVER preempts the core: if SPY or QQQ wakes up mid-afternoon while
+    in a bench trade, manage the bench trade to its exit — don't hold both plus a
+    new core entry beyond the 3-trades/day cap.
+- **PAUSED while this focus is active:** the Tue/Wed/Thu day rotation and the
+  Mag 10 daily pair rotation. No single-name drift outside the bench list.
 - Everything else unchanged: Casey 7+ trigger, gamma walls before every option,
   $50/trade, T1 lock, time stops, no new 0DTE after 3:45pm.
 
@@ -301,6 +314,8 @@ Options trades this week are LIMITED to five names only:
   single stocks. Penny-wide options and massive whale flow on all five.
 - Any single-stock OPTION this week must be NVDA or AAPL — no other Mag 10
   names get option trades until this override is lifted.
+- BENCH EXCEPTION (July 10): AAL options are allowed ONLY via the SPY+QQQ FOCUS
+  bench (both cores failed at noon + full 7+ + RVOL >2x; no earnings week).
 - LEVERAGED FRACS are unaffected: the full Mag 10 2x rotation (Trade 3) still
   runs for shares/fracs (NVDL, TSLL, AAPU, etc.). This limit is OPTIONS ONLY.
 - On rotation days whose Mag 10 pair isn't NVDA/AAPL, the single-stock play
