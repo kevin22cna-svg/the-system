@@ -8,8 +8,9 @@ Two names: **SPY and QQQ** are the CORE. Both, every day, all day. Day rotation
 7+):** NVDA → AAPL → IWM → AAL, same gates, half size ($25) unless 8+.
 AAL: needs 7+ AND RVOL >2x, no 2x ETF (options/shares only), NO trades earnings
 week (~Jul 23–24). Bench never preempts the core.
-- Vehicles: SPY/QQQ options (2DTE, delta 0.10–0.50, Casey 7+) AND the 2x pairs
-  **SSO/SDS · QLD/QID — leveraged shares run in the AGENTIC account (••••2577)**
+- **ACCOUNT SPLIT: options → WILEY BEANS (••••7792, Claude alerts / Kevin fills
+  manually) · leveraged shares → AGENTIC (••••2577, Claude executes).**
+  SPY/QQQ options 2DTE, delta 0.10–0.50, Casey 7+ · 2x pairs SSO/SDS · QLD/QID
 - **10AM RULE:** the pop comes AFTER 10:00am. Mark levels 9:20–9:45 as always,
   but the entry window is 10:00am → 3:45pm. Trade all day.
 - Noon = regime check, not shutdown: no break by 12 = chop (skip/half). A
@@ -50,8 +51,8 @@ level, ORB, score crossing 7, T1/stop, structure shift). Silent otherwise.
 ## ✅ SYSTEM SNAPSHOT (all in CLAUDE.md)
 - TRIGGER = Casey A+ 7+ · gamma/flow = refiners · $50/trade · max 3/day
 - T1 LOCK · time stops · no new 0DTE after 3:45 · GTC ±5% on fracs
-- Accounts: AGENT-007 ••••2577 = agentic execution (options AND leveraged
-  shares now) · Wiley Beans ••••7792 = manual only, alerts
+- Accounts: AGENT-007 ••••2577 = agentic, LEVERAGED SHARES (Claude executes) ·
+  Wiley Beans ••••7792 = OPTIONS (Claude alerts contract, Kevin fills manually)
 - Thursday discipline scorecard: both stand-downs correct — QQQ never closed
   above 725, SPY never closed above 752. Standing down WAS the trade.
 

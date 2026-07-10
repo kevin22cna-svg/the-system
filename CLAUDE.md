@@ -26,10 +26,15 @@ I have access to Kevin's Robinhood Agentic account (666042577).
 ## ⭐ SPY + QQQ FOCUS (effective July 10, 2026 — SUPERSEDES the daily rotation while active)
 The trading universe is TWO names: **SPY and QQQ**. Both, every day, all day.
 
-- **Vehicles (both allowed, pick per setup):**
-  - OPTIONS — SPY/QQQ, 2DTE default, delta 0.10–0.50, Casey 7+ gate, gamma walls first
-  - 2x LEVERAGED SHARES — SSO/SDS (SPY) and QLD/QID (QQQ), executed in the
-    AGENTIC account (666042577), +5%/−5%, GTC sell right after fill
+- **Vehicles (both allowed, pick per setup) — ACCOUNT SPLIT:**
+  - OPTIONS → **WILEY BEANS (••••7792)** — SPY/QQQ, 2DTE default, delta 0.10–0.50,
+    Casey 7+ gate, gamma walls first. Wiley Beans is NOT agentic: Claude ALERTS
+    with the exact contract (ticker/strike/expiry/limit), KEVIN places it manually.
+  - 2x LEVERAGED SHARES → **AGENTIC (666042577)** — SSO/SDS (SPY) and QLD/QID (QQQ),
+    Claude executes directly (review_equity_order → place_equity_order), +5%/−5%,
+    GTC sell right after fill.
+  - Same split applies to the bench: NVDA/AAPL/IWM/AAL options → Wiley Beans
+    (alert, Kevin fills) · NVDL, AAPU/AAPD, UWM/TWM, AAL shares → agentic.
 - **THE 10AM RULE (Kevin's read):** SPY and QQQ pop AFTER 10:00am — the 9:30–10:00
   open is noise. Levels and day type still get marked 9:20–9:45, but the entry
   window is **10:00am → 3:45pm. We trade ALL DAY.**
@@ -766,10 +771,16 @@ run the eod scanner for tomorrow
 
 ---
 
-## ACCOUNT
-Account: 666042577 (Agentic-enabled, option_level_2)
-Always use review_option_order BEFORE place_option_order.
-Always confirm fills before placing exit orders.
+## ACCOUNTS (split by vehicle — effective July 10, 2026)
+- **AGENTIC 666042577** (Agentic-enabled, option_level_2) → LEVERAGED SHARES/FRACS.
+  Claude executes: review_equity_order BEFORE place_equity_order, GTC ±5% sell
+  right after fill. Confirm fills before placing exit orders.
+- **WILEY BEANS ••••7792** (NOT agentic — manual only) → OPTIONS.
+  Claude alerts with the exact contract (ticker/strike/expiry/limit price);
+  KEVIN places the trade himself. Claude monitors the position via
+  get_option_positions and alerts T1/stop/time-stop — Kevin executes exits too.
+- If an option ever goes through the agentic account instead, the old rule
+  stands: review_option_order BEFORE place_option_order, always.
 PROFIT TARGET FIRST — sell the instant target is hit intraday.
 
 ## RISK RULES
