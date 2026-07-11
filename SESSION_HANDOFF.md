@@ -1,9 +1,11 @@
 # SESSION HANDOFF — Friday July 10, 2026
 # ⭐ NEW REGIME: SPY + QQQ ONLY, ALL DAY — read at "good morning let's get started"
 
-## 🎯 THE NEW FOCUS (Kevin's call, Thu evening — now in CLAUDE.md)
-Two names: **SPY and QQQ** are the CORE. Both, every day, all day. Day rotation
-+ Mag 10 pairs are PAUSED.
+## 🎯 THE NEW FOCUS (updated Fri Jul 10 — now in CLAUDE.md)
+**ONE core name per day:** Mon SPY · Tue QQQ · Wed SPY · Thu QQQ ·
+**Fri REST + journal review (no trades)** · Sunday night = week prep.
+The other index is always read for context; the ticket is the day's name.
+Old day rotation + Mag 10 pairs remain PAUSED.
 **THE BENCH — only if BOTH cores are chop at the noon check (no level break, no
 7+):** NVDA → AAPL → IWM → AAL, same gates, half size ($25) unless 8+.
 AAL: needs 7+ AND RVOL >2x, no 2x ETF (options/shares only), NO trades earnings

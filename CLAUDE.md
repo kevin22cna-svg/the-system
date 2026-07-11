@@ -24,7 +24,21 @@ I have access to Kevin's Robinhood Agentic account (666042577).
 - Monday+:    LIVE trading (real money, both options and shares)
 
 ## ⭐ SPY + QQQ FOCUS (effective July 10, 2026 — SUPERSEDES the daily rotation while active)
-The trading universe is TWO names: **SPY and QQQ**. Both, every day, all day.
+The trading universe is TWO names: **SPY and QQQ** — ONE per day (July 10 update):
+
+| Day | Focus | Notes |
+|-----|-------|-------|
+| **Monday** | SPY | |
+| **Tuesday** | QQQ | |
+| **Wednesday** | SPY | |
+| **Thursday** | QQQ | |
+| **Friday** | **REST — NO TRADES** | Journal review: every trade of the week vs the rules — what was churn, what was clean, hold times, wall respect |
+| **Sunday night** | PREP | Week-ahead: econ calendar (CPI/FOMC/NFP dates), earnings, both indexes' weekly levels, sentiment scan |
+
+- The day's name is THE trade. The OTHER index is still read every check
+  (context/confirmation — they move together), but the ticket is the day's name.
+- Friday is a hard no-trade day: the week's edge is reviewed, not extended.
+  (July 10's SK Hynix flash-flush on a Friday = exhibit A for why.)
 
 - **Vehicles (both allowed, pick per setup) — ACCOUNT SPLIT:**
   - OPTIONS → **WILEY BEANS (••••7792)** — SPY/QQQ, 2DTE default, delta 0.10–0.50,
@@ -45,9 +59,10 @@ The trading universe is TWO names: **SPY and QQQ**. Both, every day, all day.
 - **All day ≠ all trades.** Max 3 trades/day stands. The week's data: every hold
   under 10 minutes lost, every hold over an hour won. The window is open all
   day so we can WAIT all day — not flip all day.
-- **THE BENCH (only when BOTH cores fail):** NVDA → AAPL → IWM → AAL.
-  "Fail" = by the NOON regime check neither SPY nor QQQ has broken a level with
-  conviction AND neither has scored 7+ — both are chop. Only THEN scan the bench,
+- **THE BENCH (only when the day's core fails):** NVDA → AAPL → IWM → AAL.
+  "Fail" = by the NOON regime check the day's focus index hasn't broken a level
+  with conviction AND hasn't scored 7+ — it's chop (check the other index first:
+  if IT is the one moving, it can take the slot). Only THEN scan the bench,
   in that order, applying the exact same gates (4 levels, Casey 7+, gamma walls,
   volume filters). A bench trade is a B-slot trade: half size ($25) unless it
   scores 8+.
