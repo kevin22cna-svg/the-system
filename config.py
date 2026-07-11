@@ -16,14 +16,16 @@ CONFIG = {
     # ── ACCOUNT ──────────────────────────────────────────────────────────────
     "account": {
         "agentic_number": "666042577",   # Your Agentic-enabled account
-        "position_size_usd": 50.0,        # Default $ per trade
+        "position_size_usd": 25.0,        # Lowered — fund account to restore to $50
     },
 
     # ── SHARES TRADING ───────────────────────────────────────────────────────
     "shares": {
-        "profit_target": 0.05,    # +5% — sell intraday the moment this hits
-        "stop_loss": 0.05,        # -5% stop
+        "profit_target": 0.05,          # +5% — sell intraday the moment this hits
+        "stop_loss": 0.05,              # -5% hard floor (catastrophic backstop)
         "take_profit_intraday": True,   # PROFIT FIRST — don't wait for close
+        "trailing_stop": True,          # MANDATORY — follow price up, sell 1% below peak
+        "trailing_stop_pct": 0.01,      # 1% below session high
     },
 
     # ── OPTIONS TRADING ──────────────────────────────────────────────────────
@@ -159,18 +161,34 @@ CONFIG = {
     "scanner": {
         "scan_interval_sec": 300,        # Every 5 min
         "profit_check_interval_sec": 60, # Position check every 60s
-        "price_range": {"min": 10.0, "max": 50.0},
+        "price_range": {"min": 10.0, "max": 25.0},  # $10-$25 — clean fills, 1-2 shares at $25 position
     },
 
     # ── TICKER UNIVERSE (single source of truth) ─────────────────────────────
     "tickers": {
-        # Primary watchlist — the $10-50 swing/options universe
+        # Primary watchlist — $10-$25 rotation universe (fallback after ETFs)
+        # Rotated in/out based on price staying in range — scanner filters by price live
         "primary": [
-            "SPCX","FCEL","CRWV","HIMS","SOFI","CIFR","AAL","CCL","CLSK",
-            "RIOT","WULF","MARA","RKT","OPEN","NU","KMI","DAL","LUNR","RDW",
-            "JOBY","SOUN","BBAI","QBTS","IONQ","HIVE","RIVN","NIO","ASTS","RKLB",
-            # User-added
-            "NOK","AMC","PFE","BAC","GME","BABA","HTZ","SNAP","WMT","POET",
+            # ── TOP 20 (always scanned every cycle) ──────────────────────────
+            "SOFI","AAL","FCEL","CLSK","RIOT",           # fintech + crypto proxies
+            "SOUN","JOBY","LUNR","ASTS",                 # AI audio + space/drone
+            "NIO","RIVN","RKT","HIMS",                   # EV + fintech + health
+            "GME","SNAP","IONQ",                          # meme/retail + quantum
+            "NVDA","AMD","PLTR","TSLA",                  # high-price tech (fractional)
+            # ── ROTATION (scanned when B2 quota allows) ──────────────────────
+            "BBAI","RDW","NU","OPEN",                    # rotated out of top 20
+            "QBTS","NOK","AMC","BAC","HTZ","PFE",
+            # Quantum computing — Trump EO June 2026 catalyst
+            "RGTI","QUBT",
+            # Meme / retail squeeze names
+            "BB","CLOV","SPCE","LCID","DKNG",
+            # Crypto proxies (rotated out — use RIOT+CLSK above as representatives)
+            "CIFR","WULF","HIVE",
+        ],
+        # On watch — stocks near $10-$25 range, rotate in when price qualifies
+        "on_watch": [
+            "MARA","CCL","DAL","KMI","RKLB","CRWV","PLTR","HOOD",
+            "SPCX","BBAI","POET","BABA",
         ],
         # Volume Trades watchlist
         "volume_trades": [
@@ -182,15 +200,53 @@ CONFIG = {
         ],
         # 0DTE options universe
         "options_0dte": ["SPY","QQQ","IWM"],
+        # Catalyst plays — any price, fractional shares, profit at all times
+        # No price ceiling — $25 buys fractional shares regardless of share price
+        # Trigger: score 7+ AND moving 3%+ on the day OR breaking a key level
+        "catalyst_plays": [
+            # Mega-cap tech movers (high price = fractional only, same % profit)
+            "NVDA","AMD","MU","AVGO","ARM","MSFT","AAPL","META","GOOGL","AMZN","TSLA",
+            # High-momentum tech (above $25 range)
+            "PLTR","CRWV","HOOD","RKLB",
+            # AI Infrastructure — server/rack-scale manufacturing
+            "CLS",   # Celestica — AMD Helios partner, $3M OTM call sweep June 24 2026
+            # Nuclear — Trump $17.5B / 10 reactor commitment (June 2026)
+            "CCJ","BAM","BWXT","CW","LEU",
+            # Nuclear ETFs
+            "URA","URNM","NUKZ",
+        ],
     },
 
     # ── LEVERAGED ETFs (intraday only — NEVER held overnight) ────────────────
     "leveraged_etfs": {
-        "tickers": ["UPRO", "SDS", "TQQQ", "SQQQ"],
+        # SPY 2x: SSO (long) / SDS (short)
+        # QQQ 2x: QLD (long) / QID (short)
+        # IWM 2x: UWM (long) / TWM (short)
+        "tickers": ["SSO", "SDS", "QLD", "QID", "UWM", "TWM"],
+        "spy_long":  "SSO",   # 2x S&P long
+        "spy_short": "SDS",   # 2x S&P short
+        "qqq_long":  "QLD",   # 2x QQQ long
+        "qqq_short": "QID",   # 2x QQQ short
+        "iwm_long":  "UWM",   # 2x IWM long
+        "iwm_short": "TWM",   # 2x IWM short
+        "premarket_window": "12am",  # use midnight overnight high/low for PMH/PML
+        "scan_priority": "first",  # check these FIRST before explosion scanner every cycle
+        "scan_interval_sec": 120,   # 2-min scan — faster than main 5-min to catch midday SPY/QQQ moves
         "intraday_only": True,
         "force_close_by": "15:45",   # ET — same as 0DTE force-close
-        "profit_target": 0.05,       # +5%
-        "stop_loss": 0.05,           # -5%
+        "profit_target": 0.05,          # +5% — sell full position, reinvest everything
+        "stop_loss":     0.05,          # -5% hard floor (catastrophic backstop)
+        "trailing_stop": True,          # MANDATORY — follow price up, sell 1% below peak
+        "trailing_stop_pct": 0.01,      # 1% below session high
+        "use_full_buying_power": True,  # compound — use all available cash each trade
+        "price_range": {"min": 10.0, "max": 150.0},  # overrides scanner range — QLD ~$92
+        # Direction logic: SPY/QQQ up = buy SSO/QLD | SPY/QQQ down = buy SDS/QID
+        "direction_trigger": {
+            "spy_drop_pct": 0.005,   # SPY drops 0.5% from session high = buy SDS
+            "qqq_drop_pct": 0.005,   # QQQ drops 0.5% from session high = buy QID
+            "spy_rise_pct": 0.005,   # SPY rises 0.5% from session low = buy SSO
+            "qqq_rise_pct": 0.005,   # QQQ rises 0.5% from session low = buy QLD
+        },
         "note": "Never hold overnight — decay and gap risk make EOD exit mandatory",
     },
 
@@ -206,6 +262,23 @@ CONFIG = {
         "reddit_user_agent": "KevinTrader/1.0",
         "news_search_enabled": True,    # web search for catalysts
         "earnings_check_enabled": True,
+
+        # ── OPTIONS FLOW SOURCES (check before every trade) ──────────────────
+        # Priority order — check ALL before entering any options position
+        "options_flow_sources": [
+            "IBKR",          # Interactive Brokers — real-time sweep & block data
+            "Pineify",       # Pineify options flow — sweep detection + sentiment
+            "OptionStrat",   # OptionStrat flow — visualized flow, strike heatmap
+            "Barchart",      # Barchart unusual options activity — volume/OI screener
+        ],
+        # Flow signal rules:
+        #   Sweep at ask = aggressive buy = bullish conviction
+        #   Block at bid = aggressive sell / hedge = bearish or exit signal
+        #   $1M+ premium = institutional (not retail noise)
+        #   $3M+ premium = major conviction — follow the strike and expiry
+        #   OTM sweep = directional bet, not a hedge
+        #   Same direction as your setup = A++ signal, full size
+        #   Opposite direction = SKIP or cut size to $12.50 max
     },
 
     # ── EOD LEAD SCANNER ─────────────────────────────────────────────────────

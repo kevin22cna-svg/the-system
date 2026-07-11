@@ -1,77 +1,162 @@
 """
-Wiley Strat — Auto-Executor
-============================
-Places HIGH CONVICTION trades automatically so you never miss a setup.
+Wiley Strat — Auto-Executor (3-Bucket Mode)
+============================================
+Three independent trade buckets run simultaneously every 5 minutes:
 
-HOW IT WORKS:
-  1. Runs the full scanner every 5 minutes
-  2. Scores every ticker (technical + order flow + news)
-  3. Runs 10x sim on top candidates
-  4. If score >= AUTO_EXECUTE_THRESHOLD:
-       → Reviews the order first (review_equity_order / review_option_order)
-       → Places the trade automatically
-       → Starts profit monitor immediately
-       → Sends you a clear alert of what was done
+  Bucket 1 — INDEX    : Leveraged ETFs (SSO/SDS/QLD/QID/UWM/TWM/TECL/MAGX)
+                         Trigger: Casey 4-level + EMA fan on SPY/QQQ/IWM
+  Bucket 2 — EXPLOSION: $10-25 universe with RVOL >2x momentum
+                         Trigger: RVOL + price structure + volume surge
+  Bucket 3 — CATALYST : Wild card (earnings runners, sector plays, news)
+                         Trigger: Catalyst event + flow + momentum
 
-CONVICTION LEVELS:
-  Score 10-12 = 🔥🔥 ELITE   → auto-execute immediately, full $50
-  Score 8-9   = 🔥 PRIME    → auto-execute, full $50
-  Score 7     = ⚡ HIGH     → auto-execute if whale flow confirms
-  Score 5-6   = ⚡ WATCH    → alert only, no auto-execute
-  Score <5    = 🚫 SKIP     → ignore
+Each bucket gets ~1/3 of available buying power.
+All 3 run independently — 1 can fire while the others wait.
+Max 3 trades/day total across all buckets.
+Trailing stop: 1% below session high on EVERY position (MANDATORY).
 
-SAFETY RULES (always enforced):
-  1. Max 3 auto-trades per day total
-  2. Max $50 per trade
-  3. No new option entries after 3:45pm ET
-  4. Always review_order before place_order
-  5. Profit monitor starts immediately after fill
-  6. Daily loss limit: -$150 (3 stops) = halt for the day
-  7. Never auto-execute in the first 15 minutes (9:30-9:45am)
-
-Run: python auto_executor.py           # scan + auto-execute (dry run)
+Run: python auto_executor.py           # dry run (review only)
      python auto_executor.py --live    # REAL money execution
 """
 
-import anthropic
+import glob
 import json
 import os
+import subprocess
 import time
-import uuid
 from datetime import datetime
 import pytz
+
+# Load .env if present (never commit .env to git)
+_env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path) as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith("#") and "=" in _line:
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
 
 ET = pytz.timezone("America/New_York")
 ACCOUNT = "666042577"
 
-MCP_SERVER = {
-    "type": "url",
-    "url": "https://agent.robinhood.com/mcp/trading",
-    "name": "robinhood-mcp"
-}
+# ── Claude CLI subprocess caller ──────────────────────────────────────────────
+# auto_executor uses `claude -p` (the Claude Code CLI) so it inherits all
+# MCP servers already configured in the user's Claude Code session — including
+# the Robinhood MCP.  No separate API client or auth token needed.
+
+def _find_mcp_config() -> str | None:
+    """Return path to Claude Code session MCP config file if found."""
+    for path in glob.glob("/tmp/mcp-config-*.json"):
+        try:
+            with open(path) as f:
+                cfg = json.load(f)
+            if cfg.get("mcpServers", {}).get("Robinhood_MCP"):
+                return path
+        except Exception:
+            continue
+    return None
+
+MCP_CONFIG_PATH = _find_mcp_config()
+
+
+def call_claude(prompt: str, system_append: str = "", timeout: int = 300) -> str:
+    """
+    Run a Claude CLI call with Robinhood MCP access.
+    Uses session MCP config if in a CCR session, otherwise falls back to
+    the default Claude Code MCP configuration on the user's machine.
+    Writes large prompts to temp files to avoid shell arg-length limits.
+    """
+    import tempfile
+
+    allowed = (
+        "mcp__Robinhood_MCP__get_portfolio,"
+        "mcp__Robinhood_MCP__get_equity_quotes,"
+        "mcp__Robinhood_MCP__get_equity_historicals,"
+        "mcp__Robinhood_MCP__get_equity_positions,"
+        "mcp__Robinhood_MCP__get_equity_fundamentals,"
+        "mcp__Robinhood_MCP__review_equity_order,"
+        "mcp__Robinhood_MCP__place_equity_order,"
+        "mcp__Robinhood_MCP__get_equity_orders,"
+        "mcp__Robinhood_MCP__get_option_quotes,"
+        "mcp__Robinhood_MCP__get_indexes,"
+        "mcp__Robinhood_MCP__get_index_quotes,"
+        "WebSearch"
+    )
+
+    # Write prompt to a temp file and pipe via stdin to avoid arg-length limits
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as pf:
+        pf.write(prompt)
+        prompt_file = pf.name
+
+    try:
+        with open(prompt_file) as pf:
+            cmd = ["claude", "-p", "--output-format", "text",
+                   "--allowed-tools", allowed,
+                   "--input-format", "text"]
+            if system_append:
+                # Write system prompt to file too
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".txt",
+                                                 delete=False) as sf:
+                    sf.write(system_append)
+                    sys_file = sf.name
+                cmd.extend(["--append-system-prompt-file", sys_file])
+            else:
+                sys_file = None  # type: ignore
+            if MCP_CONFIG_PATH:
+                cmd.extend(["--mcp-config", MCP_CONFIG_PATH])
+
+            result = subprocess.run(
+                cmd, stdin=pf, capture_output=True, text=True, timeout=timeout,
+                cwd=os.path.dirname(__file__)
+            )
+    finally:
+        os.unlink(prompt_file)
+        if "sys_file" in dir() and sys_file:
+            try: os.unlink(sys_file)
+            except Exception: pass
+
+    if result.returncode != 0 and result.stderr:
+        stderr = result.stderr.strip()
+        if "error" in stderr.lower() and not result.stdout.strip():
+            raise RuntimeError(f"claude CLI error: {stderr[:400]}")
+    return result.stdout.strip()
 
 # ── Config ────────────────────────────────────────────────────────────────────
 AUTO_EXECUTE_THRESHOLD = 8      # Score 8+ = auto-execute
 WHALE_CONFIRM_THRESHOLD = 7     # Score 7+ needs whale confirm to auto-execute
-POSITION_SIZE_USD      = 50.0   # Per trade
-MAX_DAILY_TRADES       = 3      # Max auto-trades per day
-DAILY_LOSS_LIMIT       = -150.0 # Stop trading for the day if hit
+MAX_DAILY_TRADES       = 3      # Max auto-trades per day (across all buckets)
+DAILY_LOSS_LIMIT       = -75.0  # Stop trading if daily loss exceeds this
 SCAN_INTERVAL_SEC      = 300    # Scan every 5 minutes
 
-# Option targets (2DTE default)
-OPTION_PROFIT_TARGET   = 0.50   # +50%
-OPTION_STOP_LOSS       = 0.30   # -30%
+# Profit/stop targets
 SHARE_PROFIT_TARGET    = 0.05   # +5%
-SHARE_STOP_LOSS        = 0.05   # -5%
+SHARE_STOP_LOSS        = 0.05   # -5% hard floor (catastrophic backstop)
+TRAILING_STOP_PCT      = 0.01   # 1% below session high — MANDATORY
+
+# ── Bucket Definitions ────────────────────────────────────────────────────────
+BUCKET_1_TICKERS = [
+    "SSO", "SDS", "QLD", "QID", "UWM", "TWM",   # 2x indexes
+    "TECL", "TECS", "MAGX"                        # 3x sector / Mag7
+]
+
+# Bucket 2 + 3 pulled from config at runtime (see run_auto_cycle)
+# Bucket 2 = config primary + on_watch ($10-25, RVOL >2x)
+# Bucket 3 = config catalyst_plays (earnings runners, sector catalysts)
 
 # ── Session State ─────────────────────────────────────────────────────────────
 session = {
-    "trades_today":   0,
-    "daily_pnl":      0.0,
-    "executed_syms":  [],   # don't re-enter same ticker
-    "halted":         False,
-    "scan_count":     0,
-    "log":            [],
+    "trades_today":    0,
+    "daily_pnl":       0.0,
+    "executed_syms":   [],      # don't re-enter same ticker same day
+    "halted":          False,
+    "scan_count":      0,
+    "log":             [],
+    "open_positions":  {},       # sym → fill_price
+    "session_highs":   {},       # sym → highest price seen since entry
+    "trailing_stops":  {},       # sym → current trailing stop price
+    "bucket_trades":   {"B1": 0, "B2": 0, "B3": 0},   # trades per bucket
+    "bucket_active":   {"B1": [], "B2": [], "B3": []}, # open sym per bucket
 }
 
 def now_et():
@@ -92,87 +177,293 @@ def past_force_close():
     n = now_et()
     return n.hour > 15 or (n.hour == 15 and n.minute >= 45)
 
-# ── Main Executor System Prompt ──────────────────────────────────────────────
-def build_system_prompt(dry_run: bool) -> str:
+
+# ── System Prompt ────────────────────────────────────────────────────────────
+def build_system_prompt(dry_run: bool, b1: list, b2: list, b3: list,
+                        buy_per_bucket: float) -> str:
     mode = "DRY RUN (review_order only — no real execution)" if dry_run else "LIVE EXECUTION (real money)"
     return f"""
-You are the Wiley Strat Auto-Executor. Mode: {mode}
+You are the Wiley Strat Auto-Executor running in 3-BUCKET MODE. Mode: {mode}
 
-Your job every scan cycle:
+OVERVIEW — 3 BUCKETS RUN SIMULTANEOUSLY EVERY CYCLE:
+  Total buying power is divided by 3. Each bucket gets ~${buy_per_bucket:.2f} per trade.
+  Each bucket has its own watchlist and trigger criteria.
+  A bucket fires independently when ITS setup hits 7+/10.
+  Max 3 total trades per day across all buckets.
 
-STEP 1 — SCAN & SCORE
-Get quotes for the full universe. Score each ticker 0-12:
-  +2  EMA fan aligned (proxy: >3% move = fan forming)
-  +2  15min above PMH (proxy: >5% = confirmed, 2-5% = forming)
-  +2  Zone play + structure confirmed
-  +2  ORDER FLOW: appears in Barchart unusual options today
-  +1  Barchart top options volume
-  +2  Insider buy >$100K today (OpenInsider)
-  +1  Volume above 10M average
-  -1  Overextended >15%
+════════════════════════════════════════════════════════════
+BUCKET 1 — INDEX (Leveraged ETFs, Casey 4-level framework)
+════════════════════════════════════════════════════════════
+Tickers: {b1}
 
-STEP 2 — FILTER
-  → Price $10-$150 for options (liquid chains)
-  → Avg daily volume >= 10M shares
-  → Score >= {AUTO_EXECUTE_THRESHOLD} for auto-execution
-  → Not already in position today (check existing positions)
-  → Within market hours and option window
+TRIGGER: Casey A+ framework on SPY / QQQ / IWM
+  Pull PMH/PML/PDH/PDL for SPY and QQQ from today's historicals.
 
-STEP 3 — ORDER FLOW CHECK
-  For any ticker scoring {WHALE_CONFIRM_THRESHOLD}+, web-search:
-  "unusual options activity [TICKER] today sweep"
-  If whale call/put sweep confirmed in SAME direction = execute
-  If whale flow OPPOSITE = skip regardless of score
+  Classify direction:
+    ABOVE PMH+PDH → STRONGEST BULL → SSO + QLD
+    ABOVE PMH only → BULL → SSO or QLD (pick stronger index)
+    BELOW PML+PDL → STRONGEST BEAR → SDS + QID
+    BELOW PML only → BEAR → SDS or QID
+    BETWEEN PML and PMH → CHOP → check TECL/MAGX on XLK/MAG7 strength
+    ALL LEVELS HOLDING → BALANCED → no trade, wait
 
-STEP 4 — EXECUTE (if conviction >= {AUTO_EXECUTE_THRESHOLD})
-  FOR OPTIONS (SPY/QQQ/IWM/mega caps with liquid chains):
-    1. get_option_chains for the symbol
-    2. Find ATM strike, 2DTE expiry
-    3. Confirm: OI >= 1000, volume >= 500, spread <= 5%
-    4. review_option_order FIRST — check for alerts
-    5. If review clean: place_option_order ({"DRY RUN: review only" if dry_run else "LIVE: place_option_order"})
-    6. Report: symbol, strike, expiry, premium, cost, target, stop
+  Score (0-10):
+    +2  EMA fan aligned (13>48>200 bullish OR 200>48>13 bearish) and spacing out
+    +2  15min candle BODY close above PMH (longs) or below PML (shorts)
+    +2  Zone play confirmed + price structure (HH/HL for longs, LH/LL for shorts)
+    +1  Candlestick pattern at zone (bull flag, bear flag, rejection candle)
+    +1  13 EMA pullback entry trigger on 2min chart
+    +1  Volume above average on setup candle
+    +1  VWAP in agreement with direction
 
-  FOR SHARES ($10-50 range, high volume):
-    1. review_equity_order FIRST
-    2. If review clean: {"simulate only" if dry_run else "place_equity_order — $50 market buy"}
-    3. Set limit sell at +5% immediately after fill
-    4. Report: symbol, shares, cost, target price, stop price
+  Score 7+ → execute. Score <7 → hold bucket 1 this cycle.
+  Never trade both long AND short of the same index.
 
-STEP 5 — REPORT
-Return JSON:
+════════════════════════════════════════════════════════════
+BUCKET 2 — EXPLOSION ($10-25 universe, RVOL momentum)
+════════════════════════════════════════════════════════════
+Tickers: {b2}
+
+TRIGGER: Momentum + volume explosion on the $10-25 universe
+  Pull quotes for the full B2 list to find movers.
+
+  Score (0-10):
+    +2  RVOL >3x average (exceptional surge)
+    +1  RVOL >2x average (minimum threshold — below 2x = skip)
+    +2  Price up 3%+ on the day (strong momentum)
+    +1  Price up 2-3% on the day (moderate momentum)
+    +2  EMA fan aligned (13>48>200 bullish structure on 15min)
+    +2  Breaking above 52-week high or key resistance level
+    +1  Float <20M (supernova fuel — smaller float = bigger moves)
+    +1  Volume >1M shares (confirms institutional interest)
+
+  Score 7+ AND RVOL >2x → execute. Otherwise skip.
+  If multiple tickers qualify, pick the one with highest RVOL.
+
+════════════════════════════════════════════════════════════
+BUCKET 3 — CATALYST (Earnings runners, sector plays, news)
+════════════════════════════════════════════════════════════
+Tickers: {b3}
+
+TRIGGER: Catalyst event + directional flow + momentum
+  Pull quotes and check for: earnings beats, FDA decisions,
+  contract awards, sector rotation, unusual options flow.
+
+  Score (0-10):
+    +3  Active catalyst (earnings beat, FDA approval, contract win)
+    +2  Unusual options flow confirms direction ($500K+ same-direction sweep)
+    +2  Price breaking key technical level (PDH, 52W high, round number)
+    +2  EMA fan aligned + volume surge post-catalyst
+    +1  Social/WSB sentiment spike (confirms retail momentum)
+
+  Score 7+ AND clear catalyst → execute. Otherwise skip.
+  Fractional shares ok — catalyst tickers can be any price.
+
+════════════════════════════════════════════════════════════
+EXECUTION RULES (apply to ALL buckets)
+════════════════════════════════════════════════════════════
+1. get_portfolio → check exact buying power → divide by 3 → size per bucket
+2. review_equity_order FIRST (always, no exceptions)
+3. {"review only — no real order (DRY RUN)" if dry_run else "place_equity_order — fractional market buy"}
+4. After fill: place limit sell at fill_price × 1.05 (+5% profit target)
+5. NO fixed stop order — trailing stop managed by Python monitor (1% below session high)
+6. Never re-enter a ticker already executed today
+7. Force close all positions at 3:45pm ET
+
+ACCOUNT: {ACCOUNT}
+MODE: {mode}
+MAX TRADES TODAY: {MAX_DAILY_TRADES} (across all buckets)
+SIZE PER BUCKET: ~${buy_per_bucket:.2f}
+
+RETURN FORMAT — JSON only, no prose:
 {{
   "scan_time": "...",
-  "scores": [{{"sym":"SOFI","score":9,"direction":"CALLS","flow":["unusual options"]}}],
-  "executed": [{{"sym":"SOFI","type":"option","strike":"$18.5C","expiry":"Jun 19",
-                 "premium":0.45,"cost":45.0,"target":"+50%","stop":"-30%",
-                 "order_id":"...", "status":"filled"}}],
-  "alerts": [{{"sym":"META","score":8,"direction":"PUTS","reason":"whale sweep confirmed but no funds"}}],
-  "skipped": [{{"sym":"AVGO","reason":"already overextended, failed 10x sim"}}]
+  "buying_power": 34.63,
+  "size_per_bucket": 11.54,
+  "bucket1": {{
+    "market_direction": "BULL/BEAR/CHOP/BALANCED",
+    "spy_vs_levels": "above PMH+PDH / above PMH only / between / below PML",
+    "qqq_vs_levels": "...",
+    "best_ticker": "QLD",
+    "score": 8,
+    "direction": "LONG",
+    "score_breakdown": "EMA fan +2, PMH break +2, HH/HL +2, bull flag +1, VWAP +1",
+    "executed": {{"sym":"QLD","shares":0.18,"fill_price":64.38,"cost":11.54,
+                  "target_price":"$67.60","target_order_id":"...","order_id":"...","status":"filled"}},
+    "wait_reason": null
+  }},
+  "bucket2": {{
+    "top_movers": [{{"sym":"FCEL","rvol":4.2,"change_pct":5.1,"score":8}}],
+    "executed": null,
+    "wait_reason": "No ticker hit RVOL >2x threshold this cycle"
+  }},
+  "bucket3": {{
+    "catalysts_found": [{{"sym":"MU","event":"earnings beat","flow":"BULLISH $2M sweep"}}],
+    "executed": null,
+    "wait_reason": "MU score 6 — flow not confirmed, wait"
+  }},
+  "alerts": [{{"bucket":"B2","sym":"SOFI","score":6,"reason":"RVOL 1.8x — close, watch next cycle"}}],
+  "skipped": [{{"sym":"SDS","reason":"market bullish, wrong direction"}}]
 }}
-
-ACCOUNTS: {ACCOUNT}
-MODE: {mode}
-MAX TRADES TODAY: {MAX_DAILY_TRADES}
-POSITION SIZE: ${POSITION_SIZE_USD}
 """.strip()
 
 
+# ── Trailing Stop Monitor ─────────────────────────────────────────────────────
+def monitor_positions(dry_run=True):
+    """Check open positions, update trailing highs, sell if stop hit."""
+    if not session["open_positions"]:
+        return
+
+    now = now_et()
+    positions_data = []
+    for sym, fill_price in session["open_positions"].items():
+        current_high = session["session_highs"].get(sym, fill_price)
+        current_stop = session["trailing_stops"].get(sym, round(fill_price * (1 - TRAILING_STOP_PCT), 4))
+        # Find which bucket this sym belongs to
+        bucket = "?"
+        for b, syms in session["bucket_active"].items():
+            if sym in syms:
+                bucket = b
+                break
+        positions_data.append({
+            "sym": sym,
+            "bucket": bucket,
+            "fill_price": fill_price,
+            "session_high": current_high,
+            "trailing_stop": current_stop,
+        })
+
+    print(f"\n  📡 TRAILING STOP MONITOR | {now.strftime('%I:%M:%S %p ET')}")
+    for p in positions_data:
+        print(f"     [{p['bucket']}] {p['sym']}: high ${p['session_high']:.2f} | "
+              f"stop ${p['trailing_stop']:.2f}")
+
+    monitor_prompt = f"""
+TRAILING STOP MONITOR — {now.strftime('%I:%M:%S %p ET')}
+
+Open positions to check:
+{json.dumps(positions_data, indent=2)}
+
+INSTRUCTIONS:
+1. Call get_equity_positions to confirm which symbols are still held
+2. Call get_equity_quotes for each confirmed symbol to get current bid/ask/last price
+3. For each position evaluate:
+   a. If current_price > session_high → new session high (stop rises with it)
+   b. If current_price <= trailing_stop → TRAILING STOP HIT → sell immediately
+      {"Use review_equity_order only (DRY RUN — no real sell)" if dry_run else
+       "Use place_equity_order: type=market, side=sell, quantity=shares_available_for_sells"}
+   c. If current_price >= fill_price × 1.05 → PROFIT TARGET HIT → sell immediately
+   d. Otherwise → HOLD, report current price
+
+TRAILING STOP RULE: stop = session_high × {1 - TRAILING_STOP_PCT:.4f} (1% below peak)
+Stop only moves UP, never down.
+
+Return JSON only:
+{{
+  "checks": [
+    {{
+      "sym": "SSO",
+      "bucket": "B1",
+      "current_price": 64.50,
+      "new_session_high": 65.00,
+      "trailing_stop": 64.35,
+      "action": "HOLD",
+      "reason": "price above stop, below target",
+      "pnl_pct": 0.018,
+      "shares_sold": null,
+      "sell_order_id": null
+    }}
+  ]
+}}
+""".strip()
+
+    try:
+        raw = call_claude(monitor_prompt, timeout=120)
+    except Exception as e:
+        print(f"  ⚠️  Monitor call failed: {e}")
+        return
+
+    try:
+        clean = raw.strip()
+        if "```" in clean:
+            for part in clean.split("```"):
+                stripped = part.strip()
+                if stripped.startswith("{") or stripped.startswith("json"):
+                    clean = stripped.replace("json", "", 1).strip()
+                    break
+        result = json.loads(clean)
+    except Exception:
+        print(f"  ⚠️  Monitor parse error — raw: {raw[:400]}")
+        return
+
+    for check in result.get("checks", []):
+        sym = check.get("sym")
+        if not sym or sym not in session["open_positions"]:
+            continue
+
+        current_price = check.get("current_price", 0)
+        new_high = check.get("new_session_high", current_price)
+        action = check.get("action", "HOLD")
+
+        if new_high > session["session_highs"].get(sym, 0):
+            session["session_highs"][sym] = new_high
+            session["trailing_stops"][sym] = round(new_high * (1 - TRAILING_STOP_PCT), 4)
+            print(f"  📈 {sym}: new high ${new_high:.2f} → trailing stop ${session['trailing_stops'][sym]:.2f}")
+
+        if action in ("SELL", "TRAILING_STOP", "PROFIT_TARGET"):
+            fill_price = session["open_positions"][sym]
+            # Estimate position size from fill_price (approx)
+            pnl = (current_price - fill_price) / fill_price * fill_price  # per share PnL, scaled below
+            pnl_dollar = check.get("pnl_pct", 0) * fill_price  # rough estimate
+            session["daily_pnl"] += pnl_dollar
+            del session["open_positions"][sym]
+            session["session_highs"].pop(sym, None)
+            session["trailing_stops"].pop(sym, None)
+            # Remove from bucket_active
+            for b in session["bucket_active"]:
+                if sym in session["bucket_active"][b]:
+                    session["bucket_active"][b].remove(sym)
+
+            reason = check.get("reason", action)
+            icon = "🟢" if action == "PROFIT_TARGET" else "🔴"
+            print(f"  {icon} {sym}: {action} @ ${current_price:.2f} "
+                  f"({'SIMULATED' if dry_run else 'SOLD'}) | "
+                  f"Reason: {reason}")
+            if check.get("sell_order_id"):
+                print(f"     Sell order: {check['sell_order_id']}")
+            if session["daily_pnl"] <= DAILY_LOSS_LIMIT:
+                session["halted"] = True
+                print(f"  🛑 Daily loss limit hit (${session['daily_pnl']:.2f}). HALTED.")
+        else:
+            pnl_pct = check.get("pnl_pct", 0)
+            icon = "📈" if pnl_pct >= 0 else "📉"
+            print(f"  ✅ {sym}: ${current_price:.2f} {icon} {pnl_pct*100:+.1f}% | "
+                  f"stop ${session['trailing_stops'].get(sym, 0):.2f} | HOLD")
+
+
 # ── Scan + Execute Cycle ──────────────────────────────────────────────────────
-def run_auto_cycle(client, dry_run=True, scan_universe=None):
-    if scan_universe is None:
-        from config import CONFIG
-        scan_universe = CONFIG["tickers"]["casey_universe"] + CONFIG["tickers"]["primary"]
-        scan_universe = list(set(scan_universe))
+def run_auto_cycle(dry_run=True):
+    # Monitor open positions first (trailing stop + profit target logic)
+    monitor_positions(dry_run=dry_run)
 
     session["scan_count"] += 1
     now = now_et()
-    print(f"\n{'─'*62}")
-    print(f"  🤖 AUTO-EXECUTOR SCAN #{session['scan_count']}  |  {now.strftime('%I:%M:%S %p ET')}")
-    print(f"  Trades today: {session['trades_today']}/{MAX_DAILY_TRADES}  |  "
+
+    # Determine available slots per bucket
+    slots_remaining = MAX_DAILY_TRADES - session["trades_today"]
+    b1_open = len(session["bucket_active"]["B1"])
+    b2_open = len(session["bucket_active"]["B2"])
+    b3_open = len(session["bucket_active"]["B3"])
+
+    print(f"\n{'═'*66}")
+    print(f"  🤖 WILEY STRAT — SCAN #{session['scan_count']}  |  {now.strftime('%I:%M:%S %p ET')}")
+    print(f"  Trades: {session['trades_today']}/{MAX_DAILY_TRADES}  |  "
           f"Daily P&L: ${session['daily_pnl']:+.2f}  |  "
           f"Mode: {'DRY RUN' if dry_run else '⚠️  LIVE'}")
-    print(f"{'─'*62}")
+    print(f"  B1(Index): {b1_open} open  |  "
+          f"B2(Explosion): {b2_open} open  |  "
+          f"B3(Catalyst): {b3_open} open")
+    print(f"{'═'*66}")
 
     if session["halted"]:
         print("  🛑 Trading HALTED — daily loss limit reached.")
@@ -186,96 +477,313 @@ def run_auto_cycle(client, dry_run=True, scan_universe=None):
         print(f"  ✋ Max trades reached ({MAX_DAILY_TRADES}/day). Monitoring positions only.")
         return
 
-    user_msg = f"""
-Run the full Wiley Strat scan and execute high conviction trades.
+    # Load tickers from config
+    from config import CONFIG
+    bucket2_tickers = list(dict.fromkeys(
+        CONFIG["tickers"].get("primary", []) + CONFIG["tickers"].get("on_watch", [])
+    ))
+    bucket3_tickers = list(dict.fromkeys(
+        CONFIG["tickers"].get("catalyst_plays", [])
+    ))
 
-Tickers to scan: {json.dumps(scan_universe[:60])}
-Already executed today (skip these): {json.dumps(session['executed_syms'])}
-Trades used today: {session['trades_today']}/{MAX_DAILY_TRADES}
-Current time: {now.strftime('%I:%M:%S %p ET')}
-Option window open: {in_option_window()}
-Past 3:45pm force-close: {past_force_close()}
+    # Estimate buy-per-bucket (will be recalculated live by Claude via get_portfolio)
+    buy_per_bucket_est = 10.0  # placeholder; Claude uses real buying_power / 3
 
-Order flow context (from this cycle):
-- Search Barchart for unusual options activity
-- Check for any whale sweeps on top scoring tickers
-- Verify 10M+ daily volume before any execution
-
-Execute any ticker scoring {AUTO_EXECUTE_THRESHOLD}+ with clean order flow.
-{"USE review_order ONLY — do NOT place real orders (DRY RUN)" if dry_run else
- "EXECUTE LIVE — place_equity_order and place_option_order for real money"}
-"""
-
-    response = client.beta.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4000,
-        system=build_system_prompt(dry_run),
-        messages=[{"role": "user", "content": user_msg}],
-        mcp_servers=[MCP_SERVER],
-        betas=["mcp-client-2025-04-04"],
-        tools=[{"type": "web_search_20250305", "name": "web_search"}]
-    )
-
-    raw = ""
-    for block in response.content:
-        if hasattr(block, "text"):
-            raw += block.text
-        elif getattr(block, "type", "") == "mcp_tool_use":
-            print(f"  🔧 {block.name}...")
-
-    # Parse results
+    # Options flow scan
+    flow_signals = {}
+    flow_section = ""
     try:
-        clean = raw.strip()
-        if "```" in clean:
-            for p in clean.split("```"):
-                if p.strip().startswith("{") or p.startswith("json"):
-                    clean = p.replace("json","",1).strip(); break
-        result = json.loads(clean)
-    except Exception:
-        # Print raw if can't parse
-        print("\n" + raw[:2000])
-        return
+        from flow_scanner import get_flow_signals as _get_flow
+        print("  📡 Scanning options flow...")
+        flow_tickers = list(dict.fromkeys(
+            CONFIG["tickers"].get("options_0dte", []) +
+            bucket3_tickers +
+            BUCKET_1_TICKERS
+        ))
+        flow_signals = _get_flow(flow_tickers)
+        active = [(s, d) for s, d in flow_signals.items() if d["score_pts"] > 0]
+        active.sort(key=lambda x: x[1]["call_premium"] + x[1]["put_premium"], reverse=True)
+        if active:
+            lines = []
+            for sym, d in active[:10]:
+                lines.append(
+                    f"  {sym}: {d['direction']} | "
+                    f"call=${d['call_premium']//1000}K put=${d['put_premium']//1000}K | "
+                    f"+{d['score_pts']}pts to score if direction matches"
+                )
+                top = d.get("top_call") or d.get("top_put")
+                if top:
+                    lines.append(
+                        f"    → {top['expiry']} ${top['strike']} {top['side'].upper()} | "
+                        f"vol {top['volume']:,} / OI {top['open_interest']:,} "
+                        f"({top['vol_oi_ratio']}x) | {top['tier']}"
+                    )
+            flow_section = "\nLIVE OPTIONS FLOW (yfinance scan this cycle):\n" + "\n".join(lines)
+            print(f"  ✅ Flow signals: {len(active)} ticker(s) with unusual activity")
+            for sym, d in active[:5]:
+                tot = d["call_premium"] + d["put_premium"]
+                icon = "📈" if d["direction"] == "BULLISH" else "📉"
+                print(f"     {icon} {sym}: {d['direction']} | "
+                      f"${tot//1000}K total | +{d['score_pts']}pts")
+        else:
+            flow_section = "\nLIVE OPTIONS FLOW: No unusual activity detected this cycle."
+            print("  📭 No unusual options flow this cycle.")
+    except Exception as _e:
+        print(f"  ⚠️  Flow scanner skipped: {_e}")
 
-    # Display executed trades
-    executed = result.get("executed", [])
-    alerts   = result.get("alerts",   [])
-    skipped  = result.get("skipped",  [])
-    scores   = result.get("scores",   [])
+    # ── Step 1: get buying power once ────────────────────────────────────────
+    print("  💰 Checking buying power...")
+    try:
+        bp_raw = call_claude(
+            "Call get_portfolio. Look at the buying power field. "
+            "Reply with ONLY a single number (no units, no text): the buying power amount.",
+            timeout=60,
+        )
+        import re as _re
+        m = _re.search(r"[\d]+\.?[\d]*", bp_raw.strip())
+        buying_power = float(m.group()) if m else 0.0
+    except Exception as e:
+        buying_power = 0.0
+        print(f"  ⚠️  Could not read buying power: {e}")
+    buy_per_bucket = round(buying_power / 3, 2) if buying_power > 0 else buy_per_bucket_est
+    print(f"  💰 Buying power: ${buying_power:.2f} | Per bucket: ${buy_per_bucket:.2f}")
 
-    if scores:
-        print(f"\n  📊 TOP SCORES THIS SCAN:")
-        for s in scores[:5]:
-            d = "📈" if s.get("direction") == "CALLS" else "📉"
-            flow = " | " + "+".join(s.get("flow",[])) if s.get("flow") else ""
-            print(f"     {d} {s['sym']:<6} {s['score']}/10{flow}")
+    already_executed = json.dumps(session["executed_syms"])
+    execute_directive = ("USE review_equity_order ONLY — DRY RUN, no real orders"
+                         if dry_run else
+                         "EXECUTE LIVE — place_equity_order for real money, fractional shares ok")
 
-    if executed:
-        print(f"\n  {'🎯 EXECUTED' if not dry_run else '🧪 SIM EXECUTED'} ({len(executed)} trades):")
-        for t in executed:
-            sym = t.get("sym","?")
-            cost = t.get("cost", 0)
+    # ── Per-bucket prompts (small + focused → each finishes in <120s) ────────
+    b1_prompt = f"""
+BUCKET 1 — INDEX ETFs — Casey 4-level framework — {now.strftime('%I:%M %p ET')}
+Account: {ACCOUNT} | Size: ${buy_per_bucket:.2f} | {execute_directive}
+
+Tickers: {BUCKET_1_TICKERS}
+Already open (skip): {json.dumps(session['bucket_active']['B1'])}
+Already executed today (skip): {already_executed}
+Trades remaining today: {slots_remaining}/{MAX_DAILY_TRADES}
+{flow_section}
+
+STEPS:
+1. Call get_equity_quotes for ["SPY","QQQ","IWM"] — get current price, open, high, low, volume.
+2. Call get_equity_historicals for SPY with interval=30minute, span=day (fewer points, fast).
+3. From the data identify PDH/PDL (yesterday's high/low from daily bars if available, else use today's first 30min range), PMH/PML (today's session high/low so far).
+4. Classify: ABOVE PMH+PDH→STRONGEST BULL→SSO+QLD | ABOVE PMH→BULL→SSO or QLD |
+            BELOW PML+PDL→STRONGEST BEAR→SDS+QID | BELOW PML→BEAR→SDS or QID |
+            BETWEEN PML and PMH→CHOP | ALL HOLDING→BALANCED
+5. Score best directional ETF (Casey A+, 0-10):
+   +2 EMA fan (13>48>200 bullish OR 200>48>13 bearish, spacing out)
+   +2 15min body close above PMH (longs) or below PML (shorts)
+   +2 Zone play + price structure (HH/HL longs, LH/LL shorts)
+   +1 Candlestick pattern (bull/bear flag, rejection)
+   +1 13 EMA pullback entry on 2min chart
+   +1 Volume above avg on setup candle
+   +1 VWAP in agreement
+6. If score 7+: review_equity_order → {"place_equity_order fractional market buy" if not dry_run else "stop at review (DRY RUN)"}
+
+Return JSON only:
+{{"bucket":"B1","market_direction":"BULL/BEAR/CHOP/BALANCED",
+  "spy_vs_levels":"...","qqq_vs_levels":"...",
+  "best_ticker":"QLD","score":8,"direction":"LONG",
+  "score_breakdown":"EMA fan +2, PMH break +2, HH/HL +2, bull flag +1, VWAP +1",
+  "executed":{{"sym":"QLD","shares":0.18,"fill_price":64.38,"cost":{buy_per_bucket:.2f},
+               "target_price":"$67.60","order_id":"...","status":"filled"}},
+  "wait_reason":null}}
+""".strip()
+
+    # Trim B2 to top 20 highest-conviction explosion tickers for speed
+    b2_fast = bucket2_tickers[:20]
+
+    b2_prompt = f"""
+BUCKET 2 — EXPLOSION SCANNER — RVOL momentum — {now.strftime('%I:%M %p ET')}
+Account: {ACCOUNT} | Size: ${buy_per_bucket:.2f} | {execute_directive}
+
+Tickers (top 20 by conviction): {b2_fast}
+Already open (skip): {json.dumps(session['bucket_active']['B2'])}
+Already executed today (skip): {already_executed}
+Trades remaining today: {slots_remaining}/{MAX_DAILY_TRADES}
+{flow_section}
+
+STEPS:
+1. Call get_equity_quotes for ALL tickers above in batches.
+2. Filter: price $10-50, up 2%+ on the day, RVOL >2x.
+3. Score top 3 movers (0-10):
+   +2 RVOL >3x  |  +1 RVOL >2x
+   +2 Price up 3%+  |  +1 Price up 2-3%
+   +2 EMA fan bullish on 15min
+   +2 Breaking above 52W high or key resistance
+   +1 Float <20M (supernova)  |  +1 Volume >1M shares
+4. If top score 7+ AND RVOL >2x: review_equity_order → {"place_equity_order" if not dry_run else "stop at review (DRY RUN)"}
+
+Return JSON only:
+{{"bucket":"B2",
+  "top_movers":[{{"sym":"FCEL","price":14.50,"change_pct":4.1,"rvol":3.2,"score":8}}],
+  "executed":{{"sym":"FCEL","shares":0.79,"fill_price":14.50,"cost":{buy_per_bucket:.2f},
+               "target_price":"$15.23","order_id":"...","status":"filled"}},
+  "wait_reason":null}}
+""".strip()
+
+    b3_prompt = f"""
+BUCKET 3 — CATALYST PLAYS — earnings/news/sector — {now.strftime('%I:%M %p ET')}
+Account: {ACCOUNT} | Size: ${buy_per_bucket:.2f} | {execute_directive}
+
+Tickers: {bucket3_tickers}
+Already open (skip): {json.dumps(session['bucket_active']['B3'])}
+Already executed today (skip): {already_executed}
+Trades remaining today: {slots_remaining}/{MAX_DAILY_TRADES}
+{flow_section}
+
+STEPS:
+1. Call get_equity_quotes for all tickers above.
+2. Identify any with active catalyst (earnings beat, sector news, unusual move 3%+).
+3. Score top catalyst (0-10):
+   +3 Active catalyst (earnings beat, contract win, major news)
+   +2 Unusual options flow same direction ($500K+ sweep)
+   +2 Breaking key technical level (PDH, 52W high, round number)
+   +2 EMA fan aligned + volume surge
+   +1 Social/WSB sentiment spike
+4. If score 7+ AND clear catalyst: review_equity_order → {"place_equity_order fractional" if not dry_run else "stop at review (DRY RUN)"}
+
+Return JSON only:
+{{"bucket":"B3",
+  "catalysts_found":[{{"sym":"MU","event":"earnings beat Q3","move_pct":18.2}}],
+  "executed":{{"sym":"MU","shares":0.06,"fill_price":198.50,"cost":{buy_per_bucket:.2f},
+               "target_price":"$208.43","order_id":"...","status":"filled"}},
+  "wait_reason":null}}
+""".strip()
+
+    # ── Step 2: Run all 3 buckets in parallel ─────────────────────────────────
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    print("  🔀 Running B1/B2/B3 in parallel (each ~60-90s)...")
+    bucket_results = {}
+
+    def run_bucket(label: str, prompt: str) -> tuple[str, dict]:
+        try:
+            raw = call_claude(prompt, timeout=180)
+            clean = raw.strip()
+            if "```" in clean:
+                for p in clean.split("```"):
+                    if p.strip().startswith("{") or p.startswith("json"):
+                        clean = p.replace("json", "", 1).strip(); break
+            return label, json.loads(clean)
+        except Exception as e:
+            return label, {"bucket": label, "error": str(e), "wait_reason": f"error: {e}"}
+
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = {
+            pool.submit(run_bucket, "B1", b1_prompt): "B1",
+            pool.submit(run_bucket, "B2", b2_prompt): "B2",
+            pool.submit(run_bucket, "B3", b3_prompt): "B3",
+        }
+        for future in as_completed(futures):
+            label, data = future.result()
+            bucket_results[label] = data
+            print(f"  ✅ {label} complete")
+
+    result = {
+        "buying_power": buying_power,
+        "size_per_bucket": buy_per_bucket,
+        "bucket1": bucket_results.get("B1", {}),
+        "bucket2": bucket_results.get("B2", {}),
+        "bucket3": bucket_results.get("B3", {}),
+        "alerts": [],
+        "skipped": [],
+    }
+
+    # ── Process bucket results ────────────────────────────────────────────────
+    all_executed = []
+    alerts = result.get("alerts", [])
+    skipped = result.get("skipped", [])
+
+    buy_per_bucket = result.get("size_per_bucket", buy_per_bucket_est)
+    print(f"\n  💰 Buying power: ${result.get('buying_power', '?')} | "
+          f"Per bucket: ~${buy_per_bucket:.2f}")
+
+    for bucket_key, label in [("bucket1", "B1 INDEX"), ("bucket2", "B2 EXPLOSION"), ("bucket3", "B3 CATALYST")]:
+        b = result.get(bucket_key, {})
+        if not b:
+            continue
+
+        bcode = bucket_key[-1]  # "1", "2", "3"
+        bkey  = f"B{bcode}"
+
+        # Show direction/movers for this bucket
+        if bucket_key == "bucket1":
+            direction = b.get("market_direction", "?")
+            score = b.get("score", 0)
+            best  = b.get("best_ticker", "?")
+            print(f"\n  [{label}] {direction} | {best} score {score}/10 | "
+                  f"SPY:{b.get('spy_vs_levels','?')} QQQ:{b.get('qqq_vs_levels','?')}")
+        elif bucket_key == "bucket2":
+            movers = b.get("top_movers", [])
+            if movers:
+                top = movers[0]
+                print(f"\n  [{label}] Top mover: {top.get('sym','?')} "
+                      f"RVOL {top.get('rvol','?')}x | "
+                      f"+{top.get('change_pct','?')}% | score {top.get('score','?')}/10")
+            else:
+                print(f"\n  [{label}] No significant movers this cycle")
+        elif bucket_key == "bucket3":
+            cats = b.get("catalysts_found", [])
+            if cats:
+                c = cats[0]
+                print(f"\n  [{label}] Catalyst: {c.get('sym','?')} — {c.get('event','?')} | "
+                      f"{c.get('flow','no flow data')}")
+            else:
+                print(f"\n  [{label}] No active catalysts this cycle")
+
+        # Process execution
+        exec_data = b.get("executed")
+        wait_reason = b.get("wait_reason")
+
+        if exec_data:
+            sym        = exec_data.get("sym", "?")
+            fill_price = exec_data.get("fill_price", 0)
+            cost       = exec_data.get("cost", 0)
+
             session["trades_today"] += 1
             session["executed_syms"].append(sym)
-            print(f"  ✅ {sym}: {t.get('type','?')} | {t.get('direction','')} | "
-                  f"Cost ${cost:.2f} | Target {t.get('target','')} | Stop {t.get('stop','')}")
-            if t.get("order_id"):
-                print(f"     Order ID: {t['order_id']} | Status: {t.get('status','')}")
+            session["bucket_trades"][bkey] += 1
+
+            if fill_price > 0:
+                session["open_positions"][sym] = fill_price
+                session["session_highs"][sym]  = fill_price
+                session["trailing_stops"][sym] = round(fill_price * (1 - TRAILING_STOP_PCT), 4)
+                session["bucket_active"][bkey].append(sym)
+
+            trailing_stop_price = session["trailing_stops"].get(sym, 0)
+            icon = "🎯" if not dry_run else "🧪"
+            print(f"  {icon} [{bkey}] {sym}: Cost ${cost:.2f} | "
+                  f"Fill ${fill_price:.2f} | "
+                  f"Target {exec_data.get('target_price','')} | "
+                  f"Trail stop ${trailing_stop_price:.2f}")
+            if exec_data.get("order_id"):
+                print(f"     Order ID: {exec_data['order_id']} | "
+                      f"Status: {exec_data.get('status','')}")
+
+            all_executed.append({**exec_data, "bucket": bkey})
             session["log"].append({
-                "time": now.isoformat(), "sym": sym,
-                "type": t.get("type"), "cost": cost, "dry_run": dry_run
+                "time": now.isoformat(), "bucket": bkey, "sym": sym,
+                "cost": cost, "fill_price": fill_price,
+                "trailing_stop_initial": trailing_stop_price, "dry_run": dry_run
             })
-    else:
-        print(f"  📭 No auto-executions this cycle (no ticker hit {AUTO_EXECUTE_THRESHOLD}+ threshold)")
+        elif wait_reason:
+            print(f"  ⏸  [{bkey}] {wait_reason}")
+
+    if not all_executed:
+        print(f"\n  📭 No executions this cycle (no bucket hit {AUTO_EXECUTE_THRESHOLD}+ threshold)")
 
     if alerts:
-        print(f"\n  ⚡ ALERTS (watch these — close to threshold):")
+        print(f"\n  ⚡ ALERTS:")
         for a in alerts:
-            print(f"     {a.get('sym','?')}: {a.get('reason','')}")
+            bk = a.get("bucket", "?")
+            print(f"     [{bk}] {a.get('sym','?')}: {a.get('reason','')}")
 
     if skipped:
         print(f"\n  ⏭️  Skipped: {', '.join(s.get('sym','?') for s in skipped)}")
 
-    # Save log
+    # Save scan log
     log_dir = os.path.expanduser("~/scan_logs")
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, f"auto_{now.strftime('%Y%m%d')}.jsonl")
@@ -283,10 +791,11 @@ Execute any ticker scoring {AUTO_EXECUTE_THRESHOLD}+ with clean order flow.
         f.write(json.dumps({
             "time": now.isoformat(),
             "scan": session["scan_count"],
-            "executed": executed,
+            "executed": all_executed,
             "alerts": alerts,
             "trades_today": session["trades_today"],
             "daily_pnl": session["daily_pnl"],
+            "bucket_trades": session["bucket_trades"],
         }) + "\n")
 
     return result
@@ -297,34 +806,46 @@ def main():
     import sys
     dry_run = "--live" not in sys.argv
 
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("❌ Set ANTHROPIC_API_KEY"); return
+    # Verify claude CLI is reachable
+    try:
+        subprocess.run(["claude", "--version"], capture_output=True, check=True, timeout=10)
+    except Exception:
+        print("❌ 'claude' CLI not found — run from within a Claude Code session"); return
+
+    if MCP_CONFIG_PATH:
+        print(f"  🔗 MCP config: {MCP_CONFIG_PATH}")
+    else:
+        print("  ⚠️  No session MCP config found — using default Claude Code MCP setup")
 
     if not dry_run:
         print("\n⚠️  LIVE MODE — REAL MONEY WILL BE SPENT.")
-        print("   Auto-executor will place trades without asking.")
+        print("   3-bucket auto-executor will place up to 3 trades without asking.")
         confirm = input("   Type WILEY to confirm: ").strip()
         if confirm != "WILEY":
             print("   Aborted."); return
 
-    client = anthropic.Anthropic(api_key=api_key)
-
     print(f"""
-╔══════════════════════════════════════════════════════════╗
-║   🤖 WILEY STRAT — AUTO-EXECUTOR                        ║
-║   Mode: {'DRY RUN (sim only)' if dry_run else '⚠️  LIVE TRADING — REAL MONEY':30s}              ║
-║   Threshold: {AUTO_EXECUTE_THRESHOLD}+/10  |  Max: {MAX_DAILY_TRADES} trades/day  |  $50/trade     ║
-║   Scan every 5 min  |  9:45am-3:45pm ET                 ║
-╚══════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════╗
+║   🤖 WILEY STRAT — AUTO-EXECUTOR (3-BUCKET MODE)            ║
+║   Mode: {'DRY RUN (sim only)' if dry_run else '⚠️  LIVE TRADING — REAL MONEY':34s}              ║
+║   Threshold: 7+/10  |  Max: {MAX_DAILY_TRADES} trades/day  |  buying_power/3  ║
+║   Scan every 5 min  |  9:45am-3:45pm ET                     ║
+╚══════════════════════════════════════════════════════════════╝
+
+  BUCKETS:
+  B1 — INDEX     : {BUCKET_1_TICKERS}
+  B2 — EXPLOSION : $10-25 universe (config primary + on_watch)
+  B3 — CATALYST  : Earnings runners + sector plays (config catalyst_plays)
 
   Safety rules active:
-  ✅ Max {MAX_DAILY_TRADES} auto-trades per day
+  ✅ Max {MAX_DAILY_TRADES} auto-trades per day (across all buckets)
   ✅ review_order before every place_order
-  ✅ Profit monitor fires immediately after fill
+  ✅ Trailing stop: 1% below session high (MANDATORY)
+  ✅ Profit target: +5% limit order immediately after fill
   ✅ No new entries after 3:45pm ET
   ✅ Daily loss limit: ${abs(DAILY_LOSS_LIMIT):.0f}
   ✅ Never re-enter same ticker same day
+  ✅ Position size = buying_power / 3 per bucket (dynamic)
 
   Press Ctrl+C to stop.
 """)
@@ -332,25 +853,31 @@ def main():
     try:
         while True:
             if in_market_hours():
-                run_auto_cycle(client, dry_run=dry_run)
+                run_auto_cycle(dry_run=dry_run)
                 print(f"\n  ⏱  Next scan in 5 min...")
                 time.sleep(SCAN_INTERVAL_SEC)
             else:
                 n = now_et()
                 print(f"  🕐 Market closed ({n.strftime('%I:%M %p ET')}). "
-                      f"Session: {session['trades_today']} trades, "
+                      f"Session: {session['trades_today']} trades | "
+                      f"B1:{session['bucket_trades']['B1']} "
+                      f"B2:{session['bucket_trades']['B2']} "
+                      f"B3:{session['bucket_trades']['B3']} | "
                       f"P&L: ${session['daily_pnl']:+.2f}")
                 time.sleep(300)
     except KeyboardInterrupt:
         print(f"\n  🛑 Auto-executor stopped.")
         print(f"  Session: {session['scan_count']} scans | "
               f"{session['trades_today']} trades | "
+              f"B1:{session['bucket_trades']['B1']} "
+              f"B2:{session['bucket_trades']['B2']} "
+              f"B3:{session['bucket_trades']['B3']} | "
               f"P&L: ${session['daily_pnl']:+.2f}")
         if session["log"]:
             log_dir = os.path.expanduser("~/scan_logs")
             path = os.path.join(log_dir, f"session_{now_et().strftime('%Y%m%d_%H%M')}.json")
             with open(path, "w") as f:
-                json.dump(session, f, indent=2)
+                json.dump(session, f, indent=2, default=str)
             print(f"  💾 Session log: {path}")
 
 
