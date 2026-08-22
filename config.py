@@ -29,7 +29,7 @@ CONFIG = {
     # ── OPTIONS TRADING ──────────────────────────────────────────────────────
     "options": {
         "default_dte": 2,         # 0, 1, 2, 3, or 5 — 2DTE is the sweet spot
-        "instruments": ["SPY", "QQQ", "IWM"],
+        "instruments": ["SPY", "QQQ", "IWM", "TSLA", "NVDA", "AAL"],
         "take_profit_intraday": True,   # PROFIT FIRST
         # Casey's complete A+ setup framework
     "casey_framework": {
@@ -181,7 +181,7 @@ CONFIG = {
             "DUOL","RDDT","DAL","ANET","CVS","BMY",
         ],
         # 0DTE options universe
-        "options_0dte": ["SPY","QQQ","IWM"],
+        "options_0dte": ["SPY","QQQ","IWM","TSLA","NVDA","AAL"],
     },
 
     # ── LEVERAGED ETFs (intraday only — NEVER held overnight) ────────────────
